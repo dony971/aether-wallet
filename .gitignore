@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.spec
+
+# Virtual environment
+venv/
+.env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Project specific
+aether.exe
+AETHER_Wallet_v1.1.0_Portable.zip
+installer/*.exe
+
+# Sled DB locks
+**/db/
