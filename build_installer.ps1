@@ -20,7 +20,7 @@ if (-not (Test-Path $dist)) {
 }
 
 if ($Portable) {
-    $ver = "1.0.0"
+    $ver = "1.1.0"
     $zipName = "AETHER_Wallet_v${ver}_Portable.zip"
     $zipPath = Join-Path $root $zipName
 
