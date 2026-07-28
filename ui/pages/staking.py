@@ -2,7 +2,7 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QLineEdit, QScrollArea
 
 from ui.theme import TEXT_PRIMARY, TEXT_SECONDARY, BG_CARD, BORDER, ACCENT, ERROR, SUCCESS, TEXT_MUTED
-from ui.components.card import Card, StatRow
+from ui.components.card import StatRow
 from core.rpc_client import RpcClient, RpcError
 from wallet.wallet_manager import WalletManager
 
@@ -34,7 +34,8 @@ class StakingPage(QWidget):
         title.setStyleSheet(f"font-size: 22px; font-weight: 700; color: {TEXT_PRIMARY}; background: transparent;")
         layout.addWidget(title)
 
-        self._stats_card = Card()
+        self._stats_card = QFrame()
+        self._stats_card.setStyleSheet(f"background-color: {BG_CARD}; border-radius: 12px; border: 1px solid {BORDER};")
         self._stats_layout = QVBoxLayout(self._stats_card)
         self._stats_layout.setContentsMargins(24, 20, 24, 20)
         self._stats_layout.setSpacing(12)
