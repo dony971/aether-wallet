@@ -4,12 +4,13 @@ from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushBu
 from PySide6.QtCore import QUrl
 
 from ui.theme import BG_PRIMARY, BG_CARD, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED, ACCENT, BORDER
+from utils.i18n import _
 
 
 class HelpDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Help")
+        self.setWindowTitle(_("Help"))
         self.setFixedSize(480, 480)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
         self.setAttribute(Qt.WA_TranslucentBackground)
@@ -20,17 +21,17 @@ class HelpDialog(QDialog):
         layout.setContentsMargins(28, 24, 28, 24)
         layout.setSpacing(14)
 
-        title = QLabel("Help & Getting Started")
+        title = QLabel(_("Help & Getting Started"))
         title.setStyleSheet(f"color: {TEXT_PRIMARY}; font-size: 18px; font-weight: 700; background: transparent;")
         layout.addWidget(title)
 
         sections = [
-            ("\u25A0  Dashboard", "View your balance, network stats, and live charts.\nTPS and balance history update automatically."),
-            ("\u2197  Send", "Send AETH to one or multiple recipients.\nSelect fee (Low/Medium/High) and confirm."),
-            ("\u2199  Receive", "Create a wallet, copy your address,\nscan QR code, or use Faucet to get test tokens."),
-            ("\u2637  Transactions", "Browse all transactions, search by address/hash,\nclick for details, export to CSV."),
-            ("\u2606  Staking", "Stake tokens to earn rewards.\nAPY 12.5%. Unstake anytime."),
-            ("\u2699  Settings", "Node info, wallet backup, public key export,\ncheck for updates, data directory."),
+            (_("\u25A0  Dashboard"), _("View your balance, network stats, and live charts.\nTPS and balance history update automatically.")),
+            (_("\u2197  Send"), _("Send AETH to one or multiple recipients.\nSelect fee (Low/Medium/High) and confirm.")),
+            (_("\u2199  Receive"), _("Create a wallet, copy your address,\nscan QR code, or use Faucet to get test tokens.")),
+            (_("\u2637  Transactions"), _("Browse all transactions, search by address/hash,\nclick for details, export to CSV.")),
+            (_("\u2606  Staking"), _("Stake tokens to earn rewards.\nAPY 12.5%. Unstake anytime.")),
+            (_("\u2699  Settings"), _("Node info, wallet backup, public key export,\ncheck for updates, data directory.")),
         ]
 
         for heading, body in sections:
@@ -45,12 +46,12 @@ class HelpDialog(QDialog):
         layout.addStretch()
 
         btn_row = QHBoxLayout()
-        repo_btn = QPushButton("GitHub")
+        repo_btn = QPushButton(_("GitHub"))
         repo_btn.setStyleSheet(self._btn_style())
         repo_btn.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://github.com/dony971/aether")))
         btn_row.addWidget(repo_btn)
 
-        close_btn = QPushButton("Close")
+        close_btn = QPushButton(_("Close"))
         close_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {ACCENT}; color: #0A0A1A; font-weight: 700;

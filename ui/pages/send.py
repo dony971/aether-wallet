@@ -5,9 +5,10 @@ from ui.theme import TEXT_PRIMARY, TEXT_SECONDARY, BG_CARD, BORDER, ACCENT, ERRO
 from core.rpc_client import RpcClient
 from wallet.wallet_manager import WalletManager
 from utils.pin_manager import is_set as pin_is_set
+from utils.i18n import _
 
 
-FEE_PRESETS = {"Low": "5", "Medium": "10", "High": "25"}
+FEE_PRESETS = {_("Low"): "5", _("Medium"): "10", _("High"): "25"}
 
 
 class RecipientRow(QFrame):
@@ -22,7 +23,7 @@ class RecipientRow(QFrame):
         layout.setSpacing(8)
 
         self.address = QLineEdit()
-        self.address.setPlaceholderText("64 hex address")
+        self.address.setPlaceholderText(_("64 hex address"))
         self.address.setStyleSheet(f"""
             QLineEdit {{
                 background-color: {BG_CARD}; color: {TEXT_PRIMARY};
@@ -34,7 +35,7 @@ class RecipientRow(QFrame):
         layout.addWidget(self.address, 3)
 
         self.amount = QLineEdit()
-        self.amount.setPlaceholderText("Amount (atomic)")
+        self.amount.setPlaceholderText(_("Amount (atomic)"))
         self.amount.setStyleSheet(f"""
             QLineEdit {{
                 background-color: {BG_CARD}; color: {TEXT_PRIMARY};
@@ -45,7 +46,7 @@ class RecipientRow(QFrame):
         """)
         layout.addWidget(self.amount, 1)
 
-        remove_btn = QPushButton("X")
+        remove_btn = QPushButton(_("X"))
         remove_btn.setFixedSize(28, 28)
         remove_btn.setStyleSheet(f"""
             QPushButton {{
@@ -76,7 +77,7 @@ class SendPage(QWidget):
         layout.setContentsMargins(32, 24, 32, 24)
         layout.setSpacing(16)
 
-        title = QLabel("Transaction Builder")
+        title = QLabel(_("Send AETHER"))
         title.setStyleSheet(f"font-size: 22px; font-weight: 700; color: {TEXT_PRIMARY}; background: transparent;")
         layout.addWidget(title)
 
@@ -95,7 +96,7 @@ class SendPage(QWidget):
 
         self._add_recipient_row()
 
-        add_btn = QPushButton("+ Add Recipient")
+        add_btn = QPushButton(_("+ Add Recipient"))
         add_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: transparent; color: {ACCENT}; font-weight: 600;
@@ -111,10 +112,10 @@ class SendPage(QWidget):
         fee_row.setSpacing(12)
         self._form_layout.addLayout(fee_row)
 
-        fee_row.addWidget(self._make_label("Fee:"))
+        fee_row.addWidget(self._make_label(_("Fee:")))
         self._fee_combo = QComboBox()
         self._fee_combo.addItems(list(FEE_PRESETS.keys()))
-        self._fee_combo.setCurrentText("Medium")
+        self._fee_combo.setCurrentText(_("Medium"))
         self._fee_combo.setStyleSheet(f"""
             QComboBox {{
                 background-color: {BG_CARD}; color: {TEXT_PRIMARY};
@@ -127,7 +128,7 @@ class SendPage(QWidget):
         fee_row.addWidget(self._fee_combo)
         fee_row.addStretch()
 
-        self._send_btn = QPushButton("Send All Transactions")
+        self._send_btn = QPushButton(_("Send All Transactions"))
         self._send_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {ACCENT}; color: #0A0A1A; font-weight: 700;
@@ -185,9 +186,9 @@ class SendPage(QWidget):
     def _on_send(self):
         if not self._wallet_mgr.has_wallet:
             if self._toast:
-                self._toast.show_toast("No wallet found. Create one in Receive.", "error")
+                self._toast.show_toast(_("No wallet found. Create one in Receive."), "error")
             else:
-                QMessageBox.warning(self, "No Wallet", "Create one in the Receive page first.")
+                QMessageBox.warning(self, _("No Wallet"), _("Create one in the Receive page first."))
             return
 
         if pin_is_set():
@@ -198,24 +199,20 @@ class SendPage(QWidget):
         txs = self._validate()
         if txs is None:
             if self._toast:
-                self._toast.show_toast("Check fields: 64-char hex address + numeric amount required.", "error")
+                self._toast.show_toast(_("Check fields: 64-char hex address + numeric amount required."), "error")
             else:
                 self._result.setStyleSheet(f"color: {ERROR}; background: transparent; padding: 8px;")
-                self._result.setText("Check fields: 64-char hex address + numeric amount required.")
+                self._result.setText(_("Check fields: 64-char hex address + numeric amount required."))
             return
 
         fee = FEE_PRESETS[self._fee_combo.currentText()]
         total_amount = sum(int(t["amount"]) for t in txs)
         total_fee = int(fee) * len(txs)
 
-        msg = (
-            f"Send {len(txs)} transaction(s)?\n\n"
-            f"Total amount: {total_amount / 10_000_000_000:.4f} AETH\n"
-            f"Fee per tx: {fee}\n"
-            f"Total fee: {total_fee}\n"
-            f"Total cost: {(total_amount + total_fee) / 10_000_000_000:.4f} AETH"
+        msg = _("Send {} transaction(s)?\n\nTotal amount: {:.4f} AETH\nFee per tx: {}\nTotal fee: {}\nTotal cost: {:.4f} AETH").format(
+            len(txs), total_amount / 10_000_000_000, fee, total_fee, (total_amount + total_fee) / 10_000_000_000
         )
-        if not QMessageBox.question(self, "Confirm", msg, QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
+        if not QMessageBox.question(self, _("Confirm"), msg, QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
             return
 
         self._send_queue = [{"receiver": t["receiver"], "amount": t["amount"], "fee": fee} for t in txs]
@@ -226,7 +223,7 @@ class SendPage(QWidget):
     def _send_next(self):
         if self._queue_index >= len(self._send_queue):
             if self._toast:
-                self._toast.show_toast(f"All {len(self._send_queue)} transaction(s) sent!", "success")
+                self._toast.show_toast(_("All {} transaction(s) sent!").format(len(self._send_queue)), "success")
             self._send_btn.setEnabled(True)
             return
 
@@ -249,7 +246,7 @@ class SendPage(QWidget):
                     decrypted = decrypt_wallet(raw, pin_candidate)
                     tmp.write(json.dumps(decrypted, indent=2).encode())
                 else:
-                    self._toast.show_toast("Cannot send: wallet is PIN-encrypted", "error")
+                    self._toast.show_toast(_("Cannot send: wallet is PIN-encrypted"), "error")
                     self._send_btn.setEnabled(True)
                     return
             else:
@@ -262,7 +259,7 @@ class SendPage(QWidget):
                                 "--wallet", tmp.name,
                                 "--rpc-url", rpc_url])
         except Exception:
-            self._toast.show_toast("Failed to prepare transaction", "error")
+            self._toast.show_toast(_("Failed to prepare transaction"), "error")
             self._send_btn.setEnabled(True)
 
     def _on_tx_result(self, proc: QProcess, code: int, tx: dict, tmp_file=None):
@@ -271,10 +268,10 @@ class SendPage(QWidget):
         short_addr = tx["receiver"][:12]
         if code == 0:
             if self._toast:
-                self._toast.show_toast(f"Tx to {short_addr}... sent ✓", "success")
+                self._toast.show_toast(_("Tx to {}... sent ✓").format(short_addr), "success")
         else:
             if self._toast:
-                self._toast.show_toast(f"Tx {self._queue_index + 1} failed: {err[:80]}", "error")
+                self._toast.show_toast(_("Tx {} failed: {}").format(self._queue_index + 1, err[:80]), "error")
         if tmp_file:
             try:
                 import os

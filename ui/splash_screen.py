@@ -3,6 +3,7 @@ from PySide6.QtGui import QPainter, QColor, QFont, QPen, QBrush, QLinearGradient
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QProgressBar
 
 from ui.theme import BG_PRIMARY, ACCENT, TEXT_SECONDARY
+from utils.i18n import _
 
 
 class SplashScreen(QWidget):
@@ -10,7 +11,7 @@ class SplashScreen(QWidget):
         super().__init__()
         self._progress = 0.0
         self._angle = 0.0
-        self._message = "Initializing..."
+        self._message = _("Initializing...")
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setFixedSize(420, 520)
@@ -74,12 +75,12 @@ class SplashScreen(QWidget):
         painter.setPen(QColor(ACCENT))
         logo_font = QFont("Segoe UI", 32, QFont.Bold)
         painter.setFont(logo_font)
-        painter.drawText(0, 200, w, 50, Qt.AlignCenter, "AETHER")
+        painter.drawText(0, 200, w, 50, Qt.AlignCenter, _("AETHER"))
 
         painter.setPen(QColor(TEXT_SECONDARY))
         sub_font = QFont("Segoe UI", 12)
         painter.setFont(sub_font)
-        painter.drawText(0, 235, w, 30, Qt.AlignCenter, "Self-Evolving DAG Consensus")
+        painter.drawText(0, 235, w, 30, Qt.AlignCenter, _("Self-Evolving DAG Consensus"))
 
         painter.setPen(QColor("#FFFFFF"))
         msg_font = QFont("Segoe UI", 10)

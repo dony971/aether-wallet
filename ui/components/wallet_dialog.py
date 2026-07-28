@@ -4,13 +4,14 @@ from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushBu
 
 from ui.theme import BG_PRIMARY, BG_CARD, BG_CARD_HOVER, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED, ACCENT, BORDER, ERROR, SUCCESS
 from wallet.wallet_manager import WalletManager
+from utils.i18n import _
 
 
 class ManageWalletsDialog(QDialog):
     def __init__(self, wallet_mgr: WalletManager, parent=None):
         super().__init__(parent)
         self._wm = wallet_mgr
-        self.setWindowTitle("Manage Wallets")
+        self.setWindowTitle(_("Manage Wallets"))
         self.setFixedSize(500, 500)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
         self.setAttribute(Qt.WA_TranslucentBackground)
@@ -21,7 +22,7 @@ class ManageWalletsDialog(QDialog):
         layout.setContentsMargins(24, 20, 24, 20)
         layout.setSpacing(12)
 
-        title = QLabel("Manage Wallets")
+        title = QLabel(_("Manage Wallets"))
         title.setStyleSheet(f"color: {TEXT_PRIMARY}; font-size: 18px; font-weight: 700; background: transparent;")
         layout.addWidget(title)
 
@@ -48,22 +49,22 @@ class ManageWalletsDialog(QDialog):
         btn_row = QHBoxLayout()
         btn_row.setSpacing(8)
 
-        self._create_btn = QPushButton("+ New")
+        self._create_btn = QPushButton(_("+ New"))
         self._create_btn.setStyleSheet(self._btn_style(ACCENT))
         self._create_btn.clicked.connect(self._on_create)
         btn_row.addWidget(self._create_btn)
 
-        self._switch_btn = QPushButton("Switch")
+        self._switch_btn = QPushButton(_("Switch"))
         self._switch_btn.setStyleSheet(self._btn_style(SUCCESS))
         self._switch_btn.clicked.connect(self._on_switch)
         btn_row.addWidget(self._switch_btn)
 
-        self._import_btn = QPushButton("Import")
+        self._import_btn = QPushButton(_("Import"))
         self._import_btn.setStyleSheet(self._btn_style(ACCENT))
         self._import_btn.clicked.connect(self._on_import)
         btn_row.addWidget(self._import_btn)
 
-        self._delete_btn = QPushButton("Delete")
+        self._delete_btn = QPushButton(_("Delete"))
         self._delete_btn.setStyleSheet(self._btn_style(ERROR))
         self._delete_btn.clicked.connect(self._on_delete)
         btn_row.addWidget(self._delete_btn)
@@ -72,7 +73,7 @@ class ManageWalletsDialog(QDialog):
 
         close_row = QHBoxLayout()
         close_row.addStretch()
-        close_btn = QPushButton("Close")
+        close_btn = QPushButton(_("Close"))
         close_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {ACCENT}; color: #0A0A1A; font-weight: 700;
@@ -111,7 +112,7 @@ class ManageWalletsDialog(QDialog):
             self._list.addItem(item)
 
     def _on_create(self):
-        name, ok = QInputDialog.getText(self, "New Wallet", "Wallet name:", text="wallet2")
+        name, ok = QInputDialog.getText(self, _("New Wallet"), _("Wallet name:"), text=_("wallet2"))
         if not ok or not name.strip():
             return
         msg = self._wm.create_wallet(name.strip())
@@ -132,11 +133,11 @@ class ManageWalletsDialog(QDialog):
 
     def _on_import(self):
         key, ok = QInputDialog.getText(
-            self, "Import Wallet", "Private key (64 or 128 hex chars):"
+            self, _("Import Wallet"), _("Private key (64 or 128 hex chars):")
         )
         if not ok or not key.strip():
             return
-        name, ok2 = QInputDialog.getText(self, "Import Wallet", "Wallet name:", text="imported")
+        name, ok2 = QInputDialog.getText(self, _("Import Wallet"), _("Wallet name:"), text=_("imported"))
         if not ok2:
             return
         msg = self._wm.import_wallet(key.strip(), name.strip())
@@ -149,12 +150,12 @@ class ManageWalletsDialog(QDialog):
             return
         name = item.data(Qt.UserRole)
         if name == self._wm.active_name:
-            QMessageBox.warning(self, "Cannot Delete", "Switch to another wallet first.")
+            QMessageBox.warning(self, _("Cannot Delete"), _("Switch to another wallet first."))
             return
-        if QMessageBox.question(self, "Confirm", f"Delete wallet '{name}'?",
+        if QMessageBox.question(self, _("Confirm"), _("Delete wallet '%s'?") % name,
                                 QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
             msg = self._wm.delete_wallet(name)
-            QMessageBox.information(self, "Wallet", msg)
+        QMessageBox.information(self, _("Wallet"), msg)
             self._refresh_list()
 
 

@@ -4,6 +4,7 @@ from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushBu
 
 from ui.theme import BG_PRIMARY, BG_CARD, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED, ACCENT, BORDER, ERROR
 from utils.pin_manager import verify, set_pin, is_set
+from utils.i18n import _
 
 
 class PinDialog(QDialog):
@@ -12,7 +13,7 @@ class PinDialog(QDialog):
         self._mode = mode  # "unlock" | "set" | "confirm"
         self._pin = ""
 
-        self.setWindowTitle("PIN" if mode != "set" else "Set PIN")
+        self.setWindowTitle(_("PIN") if mode != "set" else _("Set PIN"))
         self.setFixedSize(380, 340)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
         self.setAttribute(Qt.WA_TranslucentBackground)
@@ -29,15 +30,15 @@ class PinDialog(QDialog):
         layout.addWidget(icon)
 
         self._title = QLabel(
-            "Enter PIN" if mode != "set" else "Create a PIN"
+            _("Enter PIN") if mode != "set" else _("Create a PIN")
         )
         self._title.setStyleSheet(f"color: {TEXT_PRIMARY}; font-size: 18px; font-weight: 700; background: transparent;")
         self._title.setAlignment(Qt.AlignCenter)
         layout.addWidget(self._title)
 
         self._sub = QLabel(
-            "PIN protects your wallet and transactions." if mode == "set"
-            else "Enter your 4-6 digit PIN."
+            _("PIN protects your wallet and transactions.") if mode == "set"
+            else _("Enter your 4-6 digit PIN.")
         )
         self._sub.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px; background: transparent;")
         self._sub.setAlignment(Qt.AlignCenter)
@@ -69,7 +70,7 @@ class PinDialog(QDialog):
         btn_row.addStretch()
 
         if mode == "set" or mode == "unlock":
-            self._skip_btn = QPushButton("Skip" if mode == "set" else "Cancel")
+            self._skip_btn = QPushButton(_("Skip") if mode == "set" else _("Cancel"))
             self._skip_btn.setStyleSheet(f"""
                 QPushButton {{
                     background-color: transparent; color: {TEXT_MUTED}; font-weight: 500;
@@ -98,13 +99,13 @@ class PinDialog(QDialog):
                 self.accept()
             else:
                 self._input.clear()
-                self._error.setText("Incorrect PIN")
+                self._error.setText(_("Incorrect PIN"))
         elif self._mode == "set":
             if len(text) >= 4:
                 self._pin = text
                 self._mode = "confirm"
-                self._title.setText("Confirm PIN")
-                self._sub.setText("Re-enter your PIN to confirm.")
+                self._title.setText(_("Confirm PIN"))
+                self._sub.setText(_("Re-enter your PIN to confirm."))
                 self._input.clear()
         elif self._mode == "confirm":
             if text == self._pin:
@@ -112,4 +113,4 @@ class PinDialog(QDialog):
                 self.accept()
             else:
                 self._input.clear()
-                self._error.setText("PINs don't match")
+                self._error.setText(_("PINs don't match"))

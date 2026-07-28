@@ -4,6 +4,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QFrame
 
 from ui.theme import BG_SIDEBAR, ACCENT, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED, BORDER
 from utils.helpers import VERSION
+from utils.i18n import _
 
 
 class SidebarButton(QPushButton):
@@ -72,19 +73,19 @@ class Sidebar(QFrame):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(2)
 
-        logo = QLabel("  \u25C8  AETHER")
+        logo = QLabel(_("  \u25C8  AETHER"))
         logo.setStyleSheet(f"color: {ACCENT}; font-size: 20px; font-weight: 800; padding: 28px 18px 16px 18px; background: transparent; letter-spacing: 1px;")
         layout.addWidget(logo)
 
-        subtitle = QLabel("  Wallet")
+        subtitle = QLabel(_("  Wallet"))
         subtitle.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 11px; padding: 0 18px 4px 18px; background: transparent;")
         layout.addWidget(subtitle)
 
-        self._wallet_label = QLabel("  loading...")
+        self._wallet_label = QLabel(_("  loading..."))
         self._wallet_label.setStyleSheet(f"color: {ACCENT}; font-size: 11px; font-weight: 600; padding: 0 18px 2px 18px; background: transparent;")
         layout.addWidget(self._wallet_label)
 
-        self._manage_wallets_btn = QPushButton("  Manage Wallets")
+        self._manage_wallets_btn = QPushButton(_("  Manage Wallets"))
         self._manage_wallets_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: transparent; color: {TEXT_MUTED}; font-weight: 500;
@@ -96,7 +97,7 @@ class Sidebar(QFrame):
         self._manage_wallets_btn.clicked.connect(self._show_manage_wallets)
         layout.addWidget(self._manage_wallets_btn)
 
-        self._address_book_btn = QPushButton("  Address Book")
+        self._address_book_btn = QPushButton(_("  Address Book"))
         self._address_book_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: transparent; color: {TEXT_MUTED}; font-weight: 500;
@@ -110,13 +111,13 @@ class Sidebar(QFrame):
 
         self._buttons = []
         pages = [
-            ("\u25A0", "Dashboard"),
-            ("\u2197", "Send"),
-            ("\u2199", "Receive"),
-            ("\u2637", "Transactions"),
-            ("\u2606", "Staking"),
-            ("\u26CF", "Mining"),
-            ("\u2699", "Settings"),
+            ("\u25A0", _("Dashboard")),
+            ("\u2197", _("Send")),
+            ("\u2199", _("Receive")),
+            ("\u2637", _("Transactions")),
+            ("\u2606", _("Staking")),
+            ("\u26CF", _("Mining")),
+            ("\u2699", _("Settings")),
         ]
 
         for icon, text in pages:
@@ -127,11 +128,11 @@ class Sidebar(QFrame):
 
         layout.addStretch()
 
-        ver = QLabel(f"v{VERSION}  |  SEDC")
+        ver = QLabel(_("v{}  |  SEDC").format(VERSION))
         ver.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 10px; padding: 16px 20px 4px 20px; background: transparent;")
         layout.addWidget(ver)
 
-        self._help_btn = QPushButton("?  Help")
+        self._help_btn = QPushButton(_("?  Help"))
         self._help_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: transparent; color: {TEXT_MUTED}; font-weight: 500;
@@ -150,7 +151,7 @@ class Sidebar(QFrame):
         if self._wallet_mgr and self._wallet_mgr.has_wallet:
             self._wallet_label.setText(f"  {self._wallet_mgr.active_name}")
         else:
-            self._wallet_label.setText("  No wallet")
+            self._wallet_label.setText(_("  No wallet"))
 
     def _show_help(self):
         from ui.components.help_dialog import HelpDialog

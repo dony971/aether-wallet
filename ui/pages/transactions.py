@@ -5,6 +5,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushBu
 from ui.theme import TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED, BG_CARD, BORDER, ACCENT, SUCCESS, WARNING
 from core.rpc_client import RpcClient, RpcError
 from ui.pages.tx_detail import TransactionDetailDialog
+from utils.i18n import _
 
 
 def _hex(val) -> str:
@@ -29,13 +30,13 @@ class TransactionsPage(QWidget):
         layout.setSpacing(16)
 
         header = QHBoxLayout()
-        title = QLabel("Transactions")
+        title = QLabel(_("Transactions"))
         title.setStyleSheet(f"font-size: 22px; font-weight: 700; color: {TEXT_PRIMARY}; background: transparent;")
         header.addWidget(title)
 
         header.addStretch()
 
-        self._refresh_btn = QPushButton("Refresh")
+        self._refresh_btn = QPushButton(_("Refresh"))
         self._refresh_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: transparent; color: {ACCENT}; font-weight: 600;
@@ -47,7 +48,7 @@ class TransactionsPage(QWidget):
         self._refresh_btn.clicked.connect(self.refresh)
         header.addWidget(self._refresh_btn)
 
-        self._export_btn = QPushButton("Export CSV")
+        self._export_btn = QPushButton(_("Export CSV"))
         self._export_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: transparent; color: {SUCCESS}; font-weight: 600;
@@ -63,7 +64,7 @@ class TransactionsPage(QWidget):
 
         search_row = QHBoxLayout()
         self._search_input = QLineEdit()
-        self._search_input.setPlaceholderText("Search by address, hash, or status...")
+        self._search_input.setPlaceholderText(_("Search by address, hash, or status..."))
         self._search_input.setStyleSheet(f"""
             QLineEdit {{
                 background-color: {BG_CARD}; color: {TEXT_PRIMARY};
@@ -75,7 +76,7 @@ class TransactionsPage(QWidget):
         self._search_input.textChanged.connect(self._filter_table)
         search_row.addWidget(self._search_input, 1)
 
-        self._count_label = QLabel("0 tx")
+        self._count_label = QLabel(_("0 tx"))
         self._count_label.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 11px; background: transparent;")
         search_row.addWidget(self._count_label)
 
@@ -83,7 +84,7 @@ class TransactionsPage(QWidget):
 
         self._table = QTableWidget()
         self._table.setColumnCount(7)
-        self._table.setHorizontalHeaderLabels(["Hash", "From", "To", "Amount", "Fee", "Time", "Status"])
+        self._table.setHorizontalHeaderLabels([_("Hash"), _("From"), _("To"), _("Amount"), _("Fee"), _("Time"), _("Status")])
         self._table.horizontalHeader().setStretchLastSection(True)
         self._table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self._table.setAlternatingRowColors(True)
@@ -143,7 +144,7 @@ class TransactionsPage(QWidget):
                 self._table.setRowCount(1)
                 self._table.setItem(0, 0, QTableWidgetItem(""))
                 self._table.setSpan(0, 0, 1, 7)
-                empty = QLabel("\u25CB  No transactions yet\n\nSend or receive AETH to see your history here.")
+                empty = QLabel(_("\u25CB  No transactions yet\n\nSend or receive AETH to see your history here."))
                 empty.setAlignment(Qt.AlignCenter)
                 empty.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 13px; background: transparent; padding: 40px;")
                 self._table.setCellWidget(0, 0, empty)
@@ -152,7 +153,7 @@ class TransactionsPage(QWidget):
             self._table.setRowCount(1)
             self._table.setItem(0, 0, QTableWidgetItem(""))
             self._table.setSpan(0, 0, 1, 7)
-            empty = QLabel("\u26A0  Node not connected\n\nStart the node to view transactions.")
+            empty = QLabel(_("\u26A0  Node not connected\n\nStart the node to view transactions."))
             empty.setAlignment(Qt.AlignCenter)
             empty.setStyleSheet(f"color: {WARNING}; font-size: 13px; background: transparent; padding: 40px;")
             self._table.setCellWidget(0, 0, empty)
@@ -186,7 +187,7 @@ class TransactionsPage(QWidget):
             else:
                 time_str = "-"
 
-            status = tx.get("status", "unknown")
+            status = tx.get("status", _("unknown"))
 
             self._table.setItem(row, 0, QTableWidgetItem(tx_hash))
             self._table.setItem(row, 1, QTableWidgetItem(sender))
@@ -209,7 +210,7 @@ class TransactionsPage(QWidget):
                 or query in tx.get("status", "").lower()
             ]
         self._populate_table(txs)
-        self._count_label.setText(f"{len(txs)} tx")
+        self._count_label.setText(_("{} tx").format(len(txs)))
 
     def _sanitize_csv(self, val: str) -> str:
         if val and val[0] in ("=", "+", "-", "@", "|", "%"):
@@ -217,14 +218,14 @@ class TransactionsPage(QWidget):
         return val
 
     def _on_export_csv(self):
-        path, _ = QFileDialog.getSaveFileName(self, "Export Transactions", "transactions.csv", "CSV Files (*.csv)")
+        path, _ = QFileDialog.getSaveFileName(self, _("Export Transactions"), "transactions.csv", "CSV Files (*.csv)")
         if not path:
             return
         import csv
         try:
             with open(path, "w", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f)
-                writer.writerow(["Hash", "Sender", "Receiver", "Amount", "Fee", "Timestamp", "Status"])
+                writer.writerow([_("Hash"), _("Sender"), _("Receiver"), _("Amount"), _("Fee"), _("Timestamp"), _("Status")])
                 for tx in self._tx_data_raw:
                     tx_id = self._sanitize_csv(_hex(tx.get("tx_id", tx.get("hash", ""))))
                     sender = self._sanitize_csv(_hex(tx.get("sender", "")))
@@ -237,9 +238,9 @@ class TransactionsPage(QWidget):
                         ts = datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
                     status = self._sanitize_csv(tx.get("status", "unknown"))
                     writer.writerow([tx_id, sender, receiver, amount, fee, ts, status])
-            QMessageBox.information(self, "Export", f"{len(self._tx_data_raw)} transactions exported to\n{path}")
+            QMessageBox.information(self, _("Export"), _("{} transactions exported to\n{}").format(len(self._tx_data_raw), path))
         except Exception as e:
-            QMessageBox.warning(self, "Export Error", str(e))
+            QMessageBox.warning(self, _("Export Error"), str(e))
 
     def _on_tx_click(self, row: int, col: int):
         query = self._search_input.text().strip().lower()

@@ -5,6 +5,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
 from ui.theme import BG_CARD, ACCENT, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED, BORDER, SUCCESS
 from ui.components.card import Card, StatRow
 from core.rpc_client import RpcClient
+from utils.i18n import _
 
 
 class NetworkChart(QFrame):
@@ -36,7 +37,7 @@ class NetworkChart(QFrame):
         if len(self._points) < 2:
             painter.setPen(QColor(TEXT_SECONDARY))
             painter.setFont(QFont("Segoe UI", 11))
-            painter.drawText(rect, Qt.AlignCenter, "Waiting for data...")
+            painter.drawText(rect, Qt.AlignCenter, _("Waiting for data..."))
             painter.end()
             return
 
@@ -131,7 +132,7 @@ class BalanceChart(QFrame):
         if len(self._points) < 2:
             painter.setPen(QColor(TEXT_SECONDARY))
             painter.setFont(QFont("Segoe UI", 11))
-            painter.drawText(rect, Qt.AlignCenter, "Waiting for data...")
+            painter.drawText(rect, Qt.AlignCenter, _("Waiting for data..."))
             painter.end()
             return
 
@@ -216,7 +217,7 @@ class DashboardPage(QWidget):
         layout.setContentsMargins(32, 24, 32, 24)
         layout.setSpacing(12)
 
-        title = QLabel("Dashboard")
+        title = QLabel(_("Dashboard"))
         title.setStyleSheet(f"font-size: 22px; font-weight: 700; color: {TEXT_PRIMARY}; background: transparent;")
         layout.addWidget(title)
 
@@ -233,7 +234,7 @@ class DashboardPage(QWidget):
         banner_layout.addSpacing(12)
 
         banner_text = QVBoxLayout()
-        self._banner_title = QLabel("Wallet Balance")
+        self._banner_title = QLabel(_("Wallet Balance"))
         self._banner_title.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; background: transparent;")
         banner_text.addWidget(self._banner_title)
 
@@ -253,11 +254,11 @@ class DashboardPage(QWidget):
         self._grid = QGridLayout()
         self._grid.setSpacing(12)
 
-        self._peers_card = Card("Peers")
-        self._tx_card = Card("Transactions")
-        self._hashrate_card = Card("Hashrate")
-        self._difficulty_card = Card("Difficulty")
-        self._status_card = Card("Status")
+        self._peers_card = Card(_("Peers"))
+        self._tx_card = Card(_("Transactions"))
+        self._hashrate_card = Card(_("Hashrate"))
+        self._difficulty_card = Card(_("Difficulty"))
+        self._status_card = Card(_("Status"))
 
         self._grid.addWidget(self._peers_card, 0, 0)
         self._grid.addWidget(self._tx_card, 0, 1)
@@ -267,14 +268,14 @@ class DashboardPage(QWidget):
 
         layout.addLayout(self._grid)
 
-        chart_section = QLabel("Network Activity (TPS)")
+        chart_section = QLabel(_("Network Activity (TPS)"))
         chart_section.setStyleSheet(f"font-size: 14px; color: {TEXT_SECONDARY}; background: transparent; margin-top: 8px;")
         layout.addWidget(chart_section)
 
         self._chart = NetworkChart()
         layout.addWidget(self._chart)
 
-        balance_chart_label = QLabel("Balance History")
+        balance_chart_label = QLabel(_("Balance History"))
         balance_chart_label.setStyleSheet(f"font-size: 14px; color: {TEXT_SECONDARY}; background: transparent; margin-top: 8px;")
         layout.addWidget(balance_chart_label)
 
@@ -287,12 +288,12 @@ class DashboardPage(QWidget):
         details_layout.setContentsMargins(20, 16, 20, 16)
         details_layout.setSpacing(0)
 
-        details_title = QLabel("Node Details")
+        details_title = QLabel(_("Node Details"))
         details_title.setStyleSheet(f"font-size: 14px; font-weight: 600; color: {TEXT_PRIMARY}; background: transparent; margin-bottom: 8px;")
         details_layout.addWidget(details_title)
 
         self._detail_rows = {}
-        for key in ["Node Type", "P2P Port", "RPC Port", "Bootnode", "DAG Tips", "Mempool", "Total Supply", "Block Reward"]:
+        for key in [_("Node Type"), _("P2P Port"), _("RPC Port"), _("Bootnode"), _("DAG Tips"), _("Mempool"), _("Total Supply"), _("Block Reward")]:
             row = StatRow(key, "--")
             details_layout.addWidget(row)
             self._detail_rows[key] = row
@@ -322,19 +323,19 @@ class DashboardPage(QWidget):
                     aeth = bal.get("balance", 0) / 10_000_000_000
                     rewards = bal.get("mining_rewards", 0) / 10_000_000_000
                     self._banner_value.setText(f"{aeth:.6f} AETH")
-                    self._banner_sub.setText(f"Mining rewards: {rewards:.6f} AETH")
+                    self._banner_sub.setText(_("Mining rewards: {:.6f} AETH").format(rewards))
                 except Exception:
                     self._banner_value.setText("-- AETH")
-                    self._banner_sub.setText("Balance unavailable")
+                    self._banner_sub.setText(_("Balance unavailable"))
             else:
-                self._banner_value.setText("No wallet")
-                self._banner_sub.setText("Create one in Receive")
+                self._banner_value.setText(_("No wallet"))
+                self._banner_sub.setText(_("Create one in Receive"))
 
             self._peers_card.set_value(str(peers))
             self._tx_card.set_value(str(tx_count))
             self._hashrate_card.set_value(hashrate_str)
             self._difficulty_card.set_value(difficulty)
-            self._status_card.set_value("Mining" if is_mining else "Active")
+            self._status_card.set_value(_("Mining") if is_mining else _("Active"))
             self._status_card.set_subtitle(f"{tps:.1f} TPS")
 
             self._chart.add_point(tps)
@@ -350,7 +351,7 @@ class DashboardPage(QWidget):
             self._detail_rows["DAG Tips"].set_value(str(tips))
 
         except Exception:
-            self._banner_value.setText("Disconnected")
+            self._banner_value.setText(_("Disconnected"))
             for card in [self._peers_card, self._tx_card,
                          self._hashrate_card, self._difficulty_card, self._status_card]:
-                card.set_value("Disconnected")
+                card.set_value(_("Disconnected"))

@@ -5,6 +5,7 @@ from PySide6.QtGui import QPainter, QColor, QPen, QPainterPath, QFont
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QStackedWidget
 
 from ui.theme import BG_PRIMARY, BG_CARD, BG_CARD_HOVER, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED, ACCENT, BORDER, SUCCESS
+from utils.i18n import _
 
 
 ONBOARDING_FILE = Path.home() / "AppData" / "Roaming" / "Aether" / ".onboarding_done"
@@ -52,7 +53,7 @@ class StepIndicator(QFrame):
 class OnboardingWizard(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Welcome to AETHER")
+        self.setWindowTitle(_("Welcome to AETHER"))
         self.setFixedSize(540, 480)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
         self.setAttribute(Qt.WA_TranslucentBackground)
@@ -70,40 +71,40 @@ class OnboardingWizard(QDialog):
         self._steps = [
             self._make_page(
                 "\u25C8",
-                "Welcome to AETHER SEDC",
-                "A next-generation DAG-based cryptocurrency wallet.\n\n"
-                "Fast. Secure. Decentralized.\n\n"
-                "This guide will help you get started in a few steps."
+                _("Welcome to AETHER SEDC"),
+                _("A next-generation DAG-based cryptocurrency wallet.\n\n"
+                  "Fast. Secure. Decentralized.\n\n"
+                  "This guide will help you get started in a few steps.")
             ),
             self._make_page(
                 "\u2699",
-                "Step 1: Create a Wallet",
-                "Your wallet is your identity on the AETHER network.\n\n"
-                "Go to Receive to create a new wallet.\n"
-                "Your address is a 64-character hex key.\n\n"
-                "You can create multiple wallets and switch between them."
+                _("Step 1: Create a Wallet"),
+                _("Your wallet is your identity on the AETHER network.\n\n"
+                  "Go to Receive to create a new wallet.\n"
+                  "Your address is a 64-character hex key.\n\n"
+                  "You can create multiple wallets and switch between them.")
             ),
             self._make_page(
                 "\u2197",
-                "Step 2: Get AETH Tokens",
-                "Use the Faucet in Receive to get free test tokens.\n\n"
-                "Go to Send to transfer tokens to any address.\n"
-                "You can send to multiple recipients at once."
+                _("Step 2: Get AETH Tokens"),
+                _("Use the Faucet in Receive to get free test tokens.\n\n"
+                  "Go to Send to transfer tokens to any address.\n"
+                  "You can send to multiple recipients at once.")
             ),
             self._make_page(
                 "\u2606",
-                "Step 3: Stake & Mine",
-                "Stake your tokens to earn 12.5% APY rewards.\n\n"
-                "Enable mining in the Mining page to support the network\n"
-                "and earn mining rewards."
+                _("Step 3: Stake & Mine"),
+                _("Stake your tokens to earn 12.5% APY rewards.\n\n"
+                  "Enable mining in the Mining page to support the network\n"
+                  "and earn mining rewards.")
             ),
             self._make_page(
                 "\u2713",
-                "You're All Set!",
-                "Dashboard  \u2022  Send  \u2022  Receive\n"
-                "Transactions  \u2022  Staking  \u2022  Mining  \u2022  Settings\n\n"
-                "Use the sidebar to navigate.\n"
-                "Help is always available at the bottom of the sidebar."
+                _("You're All Set!"),
+                _("Dashboard  \u2022  Send  \u2022  Receive\n"
+                  "Transactions  \u2022  Staking  \u2022  Mining  \u2022  Settings\n\n"
+                  "Use the sidebar to navigate.\n"
+                  "Help is always available at the bottom of the sidebar.")
             ),
         ]
 
@@ -116,7 +117,7 @@ class OnboardingWizard(QDialog):
         btn_row = QHBoxLayout()
         btn_row.setSpacing(12)
 
-        self._back_btn = QPushButton("Back")
+        self._back_btn = QPushButton(_("Back"))
         self._back_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: transparent; color: {TEXT_SECONDARY}; font-weight: 600;
@@ -130,7 +131,7 @@ class OnboardingWizard(QDialog):
 
         btn_row.addStretch()
 
-        self._next_btn = QPushButton("Next")
+        self._next_btn = QPushButton(_("Next"))
         self._next_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {ACCENT}; color: #0A0A1A; font-weight: 700;
@@ -179,7 +180,7 @@ class OnboardingWizard(QDialog):
     def _update_buttons(self):
         self._back_btn.setVisible(self._current_step > 0)
         is_last = self._current_step == len(self._steps) - 1
-        self._next_btn.setText("Get Started" if is_last else "Next")
+        self._next_btn.setText(_("Get Started") if is_last else _("Next"))
         self._indicator.set_current(self._current_step)
 
     def _next_step(self):

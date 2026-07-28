@@ -3,12 +3,13 @@ from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame
 
 from ui.theme import BG_PRIMARY, BG_CARD, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED, ACCENT, BORDER
+from utils.i18n import _
 
 
 class WelcomeDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Welcome")
+        self.setWindowTitle(_("Welcome"))
         self.setFixedSize(520, 380)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
         self.setAttribute(Qt.WA_TranslucentBackground)
@@ -24,15 +25,15 @@ class WelcomeDialog(QDialog):
         icon.setAlignment(Qt.AlignCenter)
         layout.addWidget(icon)
 
-        title = QLabel("Welcome to AETHER SEDC")
+        title = QLabel(_("Welcome to AETHER SEDC"))
         title.setStyleSheet(f"color: {TEXT_PRIMARY}; font-size: 20px; font-weight: 700; background: transparent;")
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
         subtitle = QLabel(
-            "You don't have a wallet yet.\n\n"
-            "Create one to start sending, receiving,\n"
-            "and staking AETH tokens."
+            _("You don't have a wallet yet.\n\n"
+              "Create one to start sending, receiving,\n"
+              "and staking AETH tokens.")
         )
         subtitle.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 13px; background: transparent; line-height: 1.6;")
         subtitle.setAlignment(Qt.AlignCenter)
@@ -41,7 +42,7 @@ class WelcomeDialog(QDialog):
 
         layout.addStretch()
 
-        self._create_btn = QPushButton("Create Wallet")
+        self._create_btn = QPushButton(_("Create Wallet"))
         self._create_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {ACCENT}; color: #0A0A1A; font-weight: 700;
@@ -52,7 +53,7 @@ class WelcomeDialog(QDialog):
         self._create_btn.clicked.connect(self.accept)
         layout.addWidget(self._create_btn)
 
-        self._skip_btn = QPushButton("Skip for now")
+        self._skip_btn = QPushButton(_("Skip for now"))
         self._skip_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: transparent; color: {TEXT_MUTED}; font-weight: 500;

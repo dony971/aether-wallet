@@ -20,6 +20,7 @@ from core.node_manager import NodeManager
 from wallet.wallet_manager import WalletManager
 from utils.pin_manager import is_set as is_pin_set, verify as verify_pin
 from utils.helpers import VERSION, check_for_update
+from utils.i18n import _
 
 
 class MainWindow(QMainWindow):
@@ -30,7 +31,7 @@ class MainWindow(QMainWindow):
         self._node = NodeManager(self)
         self._wallet_mgr = wallet_mgr if wallet_mgr is not None else WalletManager()
 
-        self.setWindowTitle(f"AETHER SEDC v{VERSION}")
+        self.setWindowTitle(_("AETHER SEDC v{}").format(VERSION))
         self.setMinimumSize(960, 640)
         self.resize(1200, 780)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Window)
@@ -98,7 +99,7 @@ class MainWindow(QMainWindow):
         self._status_indicator.setStyleSheet(f"color: {WARNING}; font-size: 10px; background: transparent;")
         status_layout.addWidget(self._status_indicator)
 
-        self._status_text = QLabel("Starting...")
+        self._status_text = QLabel(_("Starting..."))
         self._status_text.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 10px; background: transparent;")
         status_layout.addWidget(self._status_text)
 
@@ -157,14 +158,14 @@ class MainWindow(QMainWindow):
             pass
         icon = QIcon(str(icon_path))
         self._tray.setIcon(icon)
-        self._tray.setToolTip(f"AETHER SEDC Wallet v{VERSION}")
+        self._tray.setToolTip(_("AETHER SEDC Wallet v{}").format(VERSION))
 
         menu = QMenu()
-        show_action = QAction("Show", self)
+        show_action = QAction(_("Show"), self)
         show_action.triggered.connect(self.show_and_raise)
         menu.addAction(show_action)
         menu.addSeparator()
-        quit_action = QAction("Quit", self)
+        quit_action = QAction(_("Quit"), self)
         quit_action.triggered.connect(self.quit_app)
         menu.addAction(quit_action)
 
@@ -183,7 +184,7 @@ class MainWindow(QMainWindow):
             from PySide6.QtWidgets import QInputDialog, QLineEdit
             attempts = 0
             while attempts < 3:
-                ok, pin = QInputDialog.getText(self, "Wallet Encrypted", "Enter PIN to unlock wallet:", QLineEdit.Password)
+                ok, pin = QInputDialog.getText(self, _("Wallet Encrypted"), _("Enter PIN to unlock wallet:"), QLineEdit.Password)
                 if not ok or not pin:
                     self.hide()
                     return
@@ -196,7 +197,7 @@ class MainWindow(QMainWindow):
                     self._sidebar.update_wallet_label()
                     return
                 attempts += 1
-            self._toast.show_toast("Wrong PIN after 3 attempts", "error", 5000)
+            self._toast.show_toast(_("Wrong PIN after 3 attempts"), "error", 5000)
             self.hide()
             return
 
@@ -215,16 +216,16 @@ class MainWindow(QMainWindow):
         else:
             from PySide6.QtWidgets import QMessageBox
             QMessageBox.warning(
-                self, "PIN Reset Detected",
-                "Your PIN file was deleted or corrupted.\n"
-                "Set a new PIN in Settings to protect your wallet."
+                self, _("PIN Reset Detected"),
+                _("Your PIN file was deleted or corrupted.\n"
+                  "Set a new PIN in Settings to protect your wallet.")
             )
             from PySide6.QtWidgets import QMessageBox
             reply = QMessageBox.warning(
-                self, "PIN Reset Detected",
-                "Your PIN file was deleted or corrupted.\n"
-                "The wallet is still encrypted with your PIN.\n\n"
-                "You must set a new PIN to unlock it.",
+                self, _("PIN Reset Detected"),
+                _("Your PIN file was deleted or corrupted.\n"
+                  "The wallet is still encrypted with your PIN.\n\n"
+                  "You must set a new PIN to unlock it."),
                 QMessageBox.Ok | QMessageBox.Cancel
             )
             if reply != QMessageBox.Ok:
@@ -237,7 +238,7 @@ class MainWindow(QMainWindow):
             new_pin = dlg._pin
             err = self._wallet_mgr.decrypt_with_pin(new_pin)
             if err:
-                self._toast.show_toast(f"Wrong PIN: {err}", "error", 5000)
+                self._toast.show_toast(_("Wrong PIN: {}").format(err), "error", 5000)
                 self.hide()
                 return
             self._dashboard.refresh()
@@ -290,7 +291,7 @@ class MainWindow(QMainWindow):
 
     def _startup(self):
         if self._splash:
-            self._splash.set_message("Starting node...")
+            self._splash.set_message(_("Starting node..."))
         self._node.start()
         QTimer.singleShot(500, self._watch_rpc_ready)
 
@@ -299,24 +300,24 @@ class MainWindow(QMainWindow):
             self._on_rpc_ready()
         elif attempt > 60:
             self._status_indicator.setStyleSheet(f"color: {WARNING}; font-size: 10px; background: transparent;")
-            self._status_text.setText("Node not responding")
+            self._status_text.setText(_("Node not responding"))
             if self._splash:
                 self._splash.close()
                 self._splash = None
-            self._toast.show_toast("Node not responding. Check that aether.exe is running.", "warning", 8000)
+            self._toast.show_toast(_("Node not responding. Check that aether.exe is running."), "warning", 8000)
             self.show()
             self._check_pin()
             self._refresh_timer.start(5000)
             if self._wallet_mgr.load_error:
-                self._toast.show_toast(f"Wallet issue: {self._wallet_mgr.load_error}", "warning", 8000)
+                self._toast.show_toast(_("Wallet issue: {}").format(self._wallet_mgr.load_error), "warning", 8000)
         else:
             QTimer.singleShot(500, lambda: self._watch_rpc_ready(attempt + 1))
 
     def _on_rpc_ready(self):
         self._status_indicator.setStyleSheet(f"color: {SUCCESS}; font-size: 10px; background: transparent;")
-        self._status_text.setText("Connected")
+        self._status_text.setText(_("Connected"))
         if self._splash:
-            self._splash.set_message("Connected to node")
+            self._splash.set_message(_("Connected to node"))
         self._refresh_timer.start(3000)
         self._refresh()
         if self._splash:
@@ -326,12 +327,12 @@ class MainWindow(QMainWindow):
         self._check_pin()
         QTimer.singleShot(5000, self._auto_check_update)
         if self._wallet_mgr.load_error:
-            self._toast.show_toast(f"Wallet issue: {self._wallet_mgr.load_error}", "warning", 8000)
+            self._toast.show_toast(_("Wallet issue: {}").format(self._wallet_mgr.load_error), "warning", 8000)
 
     def _auto_check_update(self):
         result = check_for_update()
         if result:
-            self._toast.show_toast(f"Update {result['tag']} available! Check Settings > Updates.", "success", 10000)
+            self._toast.show_toast(_("Update {} available! Check Settings > Updates.").format(result['tag']), "success", 10000)
 
     def _on_node_status(self, msg: str):
         self._status_text.setText(msg)
@@ -340,16 +341,16 @@ class MainWindow(QMainWindow):
 
     def _on_node_error(self, msg: str):
         self._status_indicator.setStyleSheet(f"color: {ERROR}; font-size: 10px; background: transparent;")
-        self._status_text.setText(f"Error: {msg.split(chr(10))[0]}")
+        self._status_text.setText(_("Error: {}").format(msg.split(chr(10))[0]))
         if self._splash:
-            self._splash.set_message(f"Error: {msg.split(chr(10))[0]}")
+            self._splash.set_message(_("Error: {}").format(msg.split(chr(10))[0]))
         if hasattr(self, '_toast'):
             self._toast.show_toast(msg.split(chr(10))[0], "error", 5000)
 
     def _on_node_started(self):
-        self._status_text.setText("Node started, connecting...")
+        self._status_text.setText(_("Node started, connecting..."))
         if self._splash:
-            self._splash.set_message("Node started, connecting...")
+            self._splash.set_message(_("Node started, connecting..."))
 
     def _update_status_bar(self):
         try:
@@ -357,8 +358,8 @@ class MainWindow(QMainWindow):
             peers = stats.get("connected_peers", 0)
             txs = stats.get("total_transactions", 0)
             epoch = stats.get("epoch", 0)
-            self._status_peers.setText(f"Peers: {peers}")
-            self._status_height.setText(f"Epoch: {epoch}  |  TXs: {txs}")
+            self._status_peers.setText(_("Peers: {}").format(peers))
+            self._status_height.setText(_("Epoch: {}  |  TXs: {}").format(epoch, txs))
             self._status_indicator.setStyleSheet(f"color: {SUCCESS}; font-size: 10px; background: transparent;")
         except Exception:
             self._status_indicator.setStyleSheet(f"color: {WARNING}; font-size: 10px; background: transparent;")
@@ -375,8 +376,8 @@ class MainWindow(QMainWindow):
                     if not self.isVisible():
                         badge = self._transactions._count_label.text()
                         self._tray.showMessage(
-                            "New Transaction",
-                            f"Incoming transaction detected ({badge})",
+                            _("New Transaction"),
+                            _("Incoming transaction detected ({})").format(badge),
                             QSystemTrayIcon.MessageIcon.Information,
                             3000
                         )
@@ -387,7 +388,7 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         if self._tray.isVisible():
             self.hide()
-            self._tray.showMessage("AETHER Wallet", "Minimized to tray \u2014 wallet keeps running in background.", QSystemTrayIcon.MessageIcon.Information, 2000)
+            self._tray.showMessage(_("AETHER Wallet"), _("Minimized to tray \u2014 wallet keeps running in background."), QSystemTrayIcon.MessageIcon.Information, 2000)
             event.ignore()
         else:
             self._tray.hide()

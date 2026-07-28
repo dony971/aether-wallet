@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QFrame, QLabel, QHBoxLayout, QVBoxLayout, QGraphic
 from PySide6.QtGui import QColor
 
 from ui.theme import SUCCESS, ERROR, WARNING, ACCENT, TEXT_PRIMARY, TEXT_SECONDARY
+from utils.i18n import _
 
 
 class Toast(QFrame):

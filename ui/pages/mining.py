@@ -5,6 +5,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushBu
 from ui.theme import TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED, BG_CARD, BG_CARD_HOVER, BORDER, ACCENT, ERROR, SUCCESS, WARNING, BG_PRIMARY
 from ui.components.card import Card
 from core.rpc_client import RpcClient, RpcError
+from utils.i18n import _
 
 
 class MiningChart(QFrame):
@@ -33,7 +34,7 @@ class MiningChart(QFrame):
         if not self._points:
             painter.setPen(QColor(TEXT_MUTED))
             painter.setFont(QFont("Segoe UI", 11))
-            painter.drawText(self.rect(), Qt.AlignCenter, "Waiting for mining data...")
+            painter.drawText(self.rect(), Qt.AlignCenter, _("Waiting for mining data..."))
             painter.end()
             return
 
@@ -66,7 +67,7 @@ class MiningChart(QFrame):
         painter.setPen(QColor(TEXT_MUTED))
         painter.setFont(QFont("Segoe UI", 8))
         if self._points:
-            painter.drawText(QRect(margin, 2, 80, 14), Qt.AlignLeft, f"{max_val:.1f} H/s")
+            painter.drawText(QRect(margin, 2, 80, 14), Qt.AlignLeft, _("{:.1f} H/s").format(max_val))
         painter.end()
 
 
@@ -92,7 +93,7 @@ class MiningPage(QWidget):
         layout.setContentsMargins(32, 24, 32, 24)
         layout.setSpacing(16)
 
-        title = QLabel("Mining & Network")
+        title = QLabel(_("Mining & Network"))
         title.setStyleSheet(f"font-size: 22px; font-weight: 700; color: {TEXT_PRIMARY}; background: transparent;")
         layout.addWidget(title)
 
@@ -108,7 +109,7 @@ class MiningPage(QWidget):
 
         status_text_col = QVBoxLayout()
         status_text_col.setSpacing(2)
-        self._mining_status = QLabel("Checking...")
+        self._mining_status = QLabel(_("Checking..."))
         self._mining_status.setStyleSheet(f"color: {TEXT_PRIMARY}; font-size: 16px; font-weight: 700; background: transparent;")
         status_text_col.addWidget(self._mining_status)
 
@@ -117,7 +118,7 @@ class MiningPage(QWidget):
         status_text_col.addWidget(self._mining_sub)
         banner_layout.addLayout(status_text_col, 1)
 
-        self._toggle_mining_btn = QPushButton("Start Mining")
+        self._toggle_mining_btn = QPushButton(_("Start Mining"))
         self._toggle_mining_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {ACCENT}; color: #0A0A1A; font-weight: 700;
@@ -133,17 +134,17 @@ class MiningPage(QWidget):
 
         stats_grid = QHBoxLayout()
         stats_grid.setSpacing(12)
-        self._hashrate_card = Card("Hashrate")
+        self._hashrate_card = Card(_("Hashrate"))
         stats_grid.addWidget(self._hashrate_card)
-        self._difficulty_card = Card("Difficulty")
+        self._difficulty_card = Card(_("Difficulty"))
         stats_grid.addWidget(self._difficulty_card)
-        self._mined_card = Card("Total Mined")
+        self._mined_card = Card(_("Total Mined"))
         stats_grid.addWidget(self._mined_card)
-        self._net_hashrate_card = Card("Network Hashrate")
+        self._net_hashrate_card = Card(_("Network Hashrate"))
         stats_grid.addWidget(self._net_hashrate_card)
         layout.addLayout(stats_grid)
 
-        chart_label = QLabel("Mining Hashrate")
+        chart_label = QLabel(_("Mining Hashrate"))
         chart_label.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px; font-weight: 600; background: transparent;")
         layout.addWidget(chart_label)
 
@@ -157,12 +158,12 @@ class MiningPage(QWidget):
         net_layout.setContentsMargins(24, 16, 24, 16)
         net_layout.setSpacing(8)
 
-        net_title = QLabel("Network")
+        net_title = QLabel(_("Network"))
         net_title.setStyleSheet(f"font-size: 14px; font-weight: 700; color: {TEXT_PRIMARY}; background: transparent;")
         net_layout.addWidget(net_title)
 
         self._net_rows = {}
-        for label in ["Connected Peers", "TPS", "DAG Tips", "Epoch", "Total Transactions"]:
+        for label in [_("Connected Peers"), _("TPS"), _("DAG Tips"), _("Epoch"), _("Total Transactions")]:
             row = QHBoxLayout()
             lbl = QLabel(label)
             lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px; background: transparent;")
@@ -203,16 +204,16 @@ class MiningPage(QWidget):
             epoch = int(stats.get("epoch", 0))
             tx_count = int(stats.get("total_transactions", 0))
 
-            self._mining_status.setText("Mining" if is_mining else "Not Mining")
-            self._mining_sub.setText(f"Hashrate: {hashrate:.2f} H/s" if is_mining else "Click Start to begin mining")
+            self._mining_status.setText(_("Mining") if is_mining else _("Not Mining"))
+            self._mining_sub.setText(_("Hashrate: {:.2f} H/s").format(hashrate) if is_mining else _("Click Start to begin mining"))
             self._status_icon.setStyleSheet(f"color: {SUCCESS if is_mining else WARNING}; font-size: 24px; background: transparent;")
-            self._toggle_mining_btn.setText("Stop Mining" if is_mining else "Start Mining")
+            self._toggle_mining_btn.setText(_("Stop Mining") if is_mining else _("Start Mining"))
             self._toggle_mining_btn.setEnabled(True)
 
-            self._hashrate_card.set_value(f"{hashrate:.2f} H/s")
+            self._hashrate_card.set_value(_("{:.2f} H/s").format(hashrate))
             self._difficulty_card.set_value(str(difficulty))
             self._mined_card.set_value(f"{total_mined:.4f}")
-            self._net_hashrate_card.set_value(f"{net_hashrate:.2f} H/s")
+            self._net_hashrate_card.set_value(_("{:.2f} H/s").format(net_hashrate))
 
             if is_mining:
                 self._chart.add_point(hashrate)
@@ -224,7 +225,7 @@ class MiningPage(QWidget):
             self._net_rows["Total Transactions"].set_value(str(tx_count))
 
         except RpcError:
-            self._mining_status.setText("Node disconnected")
+            self._mining_status.setText(_("Node disconnected"))
             self._toggle_mining_btn.setEnabled(False)
             for card in [self._hashrate_card, self._difficulty_card, self._mined_card, self._net_hashrate_card]:
                 card.set_value("--")
@@ -241,6 +242,6 @@ class MiningPage(QWidget):
                 self._rpc.start_mining()
             QTimer.singleShot(1000, self._refresh)
         except RpcError as e:
-            self._mining_sub.setText(f"Error: {e}")
+            self._mining_sub.setText(_("Error: {}").format(e))
         finally:
             self._toggle_mining_btn.setEnabled(True)

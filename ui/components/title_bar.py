@@ -4,6 +4,7 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QPushButton, QVBoxLa
 
 from ui.theme import BG_SIDEBAR, ACCENT, TEXT_PRIMARY, TEXT_SECONDARY, BORDER, ERROR
 from utils.helpers import VERSION
+from utils.i18n import _
 
 
 class WindowButton(QPushButton):
@@ -65,7 +66,7 @@ class TitleBar(QWidget):
         icon.setStyleSheet(f"color: {ACCENT}; font-size: 14px; padding: 0 8px 0 14px; background: transparent;")
         layout.addWidget(icon)
 
-        title = QLabel(f"AETHER SEDC v{VERSION}")
+        title = QLabel(_("AETHER SEDC v{}").format(VERSION))
         title.setStyleSheet(f"color: {TEXT_PRIMARY}; font-size: 12px; font-weight: 600; background: transparent;")
         layout.addWidget(title)
 

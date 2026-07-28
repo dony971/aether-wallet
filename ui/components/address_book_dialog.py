@@ -4,6 +4,7 @@ from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushBu
 
 from ui.theme import BG_PRIMARY, BG_CARD, BG_CARD_HOVER, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED, ACCENT, BORDER, ERROR, SUCCESS
 from utils import contacts
+from utils.i18n import _
 
 
 class AddressBookDialog(QDialog):
@@ -11,7 +12,7 @@ class AddressBookDialog(QDialog):
         super().__init__(parent)
         self.selected_address = ""
 
-        self.setWindowTitle("Address Book")
+        self.setWindowTitle(_("Address Book"))
         self.setFixedSize(520, 520)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
         self.setAttribute(Qt.WA_TranslucentBackground)
@@ -22,12 +23,12 @@ class AddressBookDialog(QDialog):
         layout.setContentsMargins(24, 20, 24, 20)
         layout.setSpacing(12)
 
-        title = QLabel("Address Book")
+        title = QLabel(_("Address Book"))
         title.setStyleSheet(f"color: {TEXT_PRIMARY}; font-size: 18px; font-weight: 700; background: transparent;")
         layout.addWidget(title)
 
         self._search_input = QLineEdit()
-        self._search_input.setPlaceholderText("Search by name or address...")
+        self._search_input.setPlaceholderText(_("Search by name or address..."))
         self._search_input.setStyleSheet(f"""
             QLineEdit {{
                 background-color: {BG_CARD}; color: {TEXT_PRIMARY};
@@ -63,22 +64,22 @@ class AddressBookDialog(QDialog):
         btn_row = QHBoxLayout()
         btn_row.setSpacing(8)
 
-        self._add_btn = QPushButton("+ Add")
+        self._add_btn = QPushButton(_("+ Add"))
         self._add_btn.setStyleSheet(self._btn_style(ACCENT))
         self._add_btn.clicked.connect(self._on_add)
         btn_row.addWidget(self._add_btn)
 
-        self._edit_btn = QPushButton("Edit")
+        self._edit_btn = QPushButton(_("Edit"))
         self._edit_btn.setStyleSheet(self._btn_style(ACCENT))
         self._edit_btn.clicked.connect(self._on_edit)
         btn_row.addWidget(self._edit_btn)
 
-        self._delete_btn = QPushButton("Delete")
+        self._delete_btn = QPushButton(_("Delete"))
         self._delete_btn.setStyleSheet(self._btn_style(ERROR))
         self._delete_btn.clicked.connect(self._on_delete)
         btn_row.addWidget(self._delete_btn)
 
-        self._send_btn = QPushButton("Send To")
+        self._send_btn = QPushButton(_("Send To"))
         self._send_btn.setStyleSheet(self._btn_style(SUCCESS))
         self._send_btn.clicked.connect(self._on_send_to)
         btn_row.addWidget(self._send_btn)
@@ -87,7 +88,7 @@ class AddressBookDialog(QDialog):
 
         close_row = QHBoxLayout()
         close_row.addStretch()
-        close_btn = QPushButton("Close")
+        close_btn = QPushButton(_("Close"))
         close_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {ACCENT}; color: #0A0A1A; font-weight: 700;
@@ -132,14 +133,14 @@ class AddressBookDialog(QDialog):
         return item.data(Qt.UserRole) if item else ""
 
     def _on_add(self):
-        name, ok = QInputDialog.getText(self, "Add Contact", "Name:")
+        name, ok = QInputDialog.getText(self, _("Add Contact"), _("Name:"))
         if not ok or not name.strip():
             return
-        addr, ok2 = QInputDialog.getText(self, "Add Contact", "Address (64 hex):")
+        addr, ok2 = QInputDialog.getText(self, _("Add Contact"), _("Address (64 hex):"))
         if not ok2 or len(addr.strip()) != 64:
-            QMessageBox.warning(self, "Invalid", "Address must be 64 hex characters.")
+            QMessageBox.warning(self, _("Invalid"), _("Address must be 64 hex characters."))
             return
-        notes, ok3 = QInputDialog.getText(self, "Add Contact", "Notes (optional):")
+        notes, ok3 = QInputDialog.getText(self, _("Add Contact"), _("Notes (optional):"))
         if not ok3:
             notes = ""
         msg = contacts.add_contact(name.strip(), addr.strip(), notes.strip())
@@ -154,13 +155,13 @@ class AddressBookDialog(QDialog):
         c = next((x for x in all_c if x["name"] == name), None)
         if not c:
             return
-        new_name, ok = QInputDialog.getText(self, "Edit Contact", "Name:", text=c["name"])
+        new_name, ok = QInputDialog.getText(self, _("Edit Contact"), _("Name:"), text=c["name"])
         if not ok:
             return
-        new_addr, ok2 = QInputDialog.getText(self, "Edit Contact", "Address:", text=c["address"])
+        new_addr, ok2 = QInputDialog.getText(self, _("Edit Contact"), _("Address:"), text=c["address"])
         if not ok2 or len(new_addr.strip()) != 64:
             return
-        new_notes, ok3 = QInputDialog.getText(self, "Edit Contact", "Notes:", text=c.get("notes", ""))
+        new_notes, ok3 = QInputDialog.getText(self, _("Edit Contact"), _("Notes:"), text=c.get("notes", ""))
         if not ok3:
             new_notes = ""
         msg = contacts.edit_contact(name, new_name.strip(), new_addr.strip(), new_notes.strip())
@@ -171,10 +172,10 @@ class AddressBookDialog(QDialog):
         name = self._get_selected_name()
         if not name:
             return
-        if QMessageBox.question(self, "Confirm", f"Delete '{name}'?",
+        if QMessageBox.question(self, _("Confirm"), _("Delete '%s'?") % name,
                                 QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
             msg = contacts.delete_contact(name)
-            QMessageBox.information(self, "Contact", msg)
+        QMessageBox.information(self, _("Contact"), msg)
             self._refresh_list()
 
     def _on_send_to(self):
