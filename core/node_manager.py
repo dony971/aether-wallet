@@ -5,6 +5,7 @@ from pathlib import Path
 from PySide6.QtCore import QObject, QProcess, Signal, QTimer
 
 from core.config import config
+from utils.audit import log as audit_log
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +54,7 @@ class NodeManager(QObject):
             args += ["--bootnodes", ",".join(config.bootnodes)]
 
         logger.info(f"Starting node: {binary} {' '.join(args)}")
+        audit_log("NODE_START", f"Starting node on ports {config.p2p_port}/{config.rpc_port}")
         self.status_changed.emit("Starting node...")
         self._process.start(str(binary), args)
 
@@ -114,6 +116,7 @@ class NodeManager(QObject):
 
         if exit_code != 0:
             self._restart_count += 1
+            audit_log("NODE_CRASH", f"Node exited with code {exit_code}, restart {self._restart_count}/3")
             if self._restart_count <= 3:
                 delay = min(2 ** self._restart_count, 10)
                 logger.warning(f"Restarting in {delay}s (attempt {self._restart_count}/3)")
@@ -121,6 +124,7 @@ class NodeManager(QObject):
                 self._restart_timer.start(delay * 1000)
             else:
                 self.error_occurred.emit("Node crashed too many times. Check logs in %APPDATA%/Aether/app.log")
+                audit_log("NODE_ERROR", "Node crashed too many times, giving up")
         else:
             self._restart_count = 0
 

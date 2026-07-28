@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from PySide6.QtCore import Qt, QTimer, QRect, QPoint
+from PySide6.QtCore import Qt, QTimer, QRect, QPoint, QEvent
 from PySide6.QtGui import QIcon, QAction, QMouseEvent, QCursor, QShortcut, QKeySequence
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QStackedWidget, QLabel, QFrame, QSystemTrayIcon, QMenu, QSizeGrip
 
@@ -18,8 +18,9 @@ from ui.pages.mining import MiningPage
 from core.rpc_client import RpcClient
 from core.node_manager import NodeManager
 from wallet.wallet_manager import WalletManager
-from utils.pin_manager import is_set as is_pin_set, verify as verify_pin
+from utils.pin_manager import is_set as is_pin_set, verify as verify_pin, is_locked, lockout_remaining
 from utils.helpers import VERSION, check_for_update
+from utils.audit import log as audit_log
 from utils.i18n import _
 
 
@@ -125,6 +126,7 @@ class MainWindow(QMainWindow):
         self._resize_edge = 0
         self._resize_start_pos = QPoint()
         self._resize_start_geo = QRect()
+        self._setup_session_timeout()
         self._setup_tray()
 
         self._refresh_timer = QTimer(self)
@@ -180,29 +182,42 @@ class MainWindow(QMainWindow):
         self._check_pin()
 
     def _check_pin(self):
+        if is_locked():
+            rem = lockout_remaining()
+            self._toast.show_toast(_("PIN locked for {}s. Wait before retrying.").format(rem), "error", 5000)
+            QTimer.singleShot(rem * 1000 + 500, self._check_pin)
+            return
+
         if self._wallet_mgr.pin_required:
             from PySide6.QtWidgets import QInputDialog, QLineEdit
             attempts = 0
             while attempts < 3:
                 ok, pin = QInputDialog.getText(self, _("Wallet Encrypted"), _("Enter PIN to unlock wallet:"), QLineEdit.Password)
                 if not ok or not pin:
+                    audit_log("SESSION_LOCK", "User cancelled PIN unlock")
                     self.hide()
                     return
                 err = self._wallet_mgr.decrypt_with_pin(pin)
                 if err is None:
+                    audit_log("PIN_VERIFY_OK", "Wallet decrypted with PIN")
                     self._wallet_mgr.upgrade_to_pin_encryption(pin)
                     self._dashboard.refresh()
                     self._send.refresh()
                     self._receive.refresh()
                     self._sidebar.update_wallet_label()
+                    self._session_locked = False
+                    self._reset_session_timer()
                     return
+                audit_log("PIN_VERIFY_FAIL", f"Wrong PIN attempt {attempts + 1}/3")
                 attempts += 1
+            audit_log("PIN_LOCKOUT", "3 consecutive wrong PINs for wallet decrypt")
             self._toast.show_toast(_("Wrong PIN after 3 attempts"), "error", 5000)
             self.hide()
             return
 
         needs_pin = is_pin_set() or self._wallet_mgr.is_pin_protected()
         if not needs_pin:
+            self._reset_session_timer()
             return
         from ui.components.pin_dialog import PinDialog
         if is_pin_set():
@@ -210,8 +225,14 @@ class MainWindow(QMainWindow):
             if dlg.exec() == PinDialog.Accepted:
                 pin = dlg._input.text() or ""
                 if verify_pin(pin) and not self._wallet_mgr.pin_required:
+                    audit_log("PIN_VERIFY_OK", "App unlock PIN accepted")
                     self._wallet_mgr.upgrade_to_pin_encryption(pin)
+                    self._session_locked = False
+                    self._reset_session_timer()
+                else:
+                    audit_log("PIN_VERIFY_FAIL", "App unlock PIN rejected")
             else:
+                audit_log("SESSION_LOCK", "User cancelled PIN dialog")
                 self.hide()
         else:
             from PySide6.QtWidgets import QMessageBox
@@ -238,13 +259,17 @@ class MainWindow(QMainWindow):
             new_pin = dlg._pin
             err = self._wallet_mgr.decrypt_with_pin(new_pin)
             if err:
+                audit_log("PIN_VERIFY_FAIL", f"PIN reset decryption failed: {err}")
                 self._toast.show_toast(_("Wrong PIN: {}").format(err), "error", 5000)
                 self.hide()
                 return
+            audit_log("PIN_RESET", "Wallet unlocked after PIN reset")
             self._dashboard.refresh()
             self._send.refresh()
             self._receive.refresh()
             self._sidebar.update_wallet_label()
+            self._session_locked = False
+            self._reset_session_timer()
 
     def _start_auto_backup(self):
         self._backup_timer = QTimer(self)
@@ -276,6 +301,55 @@ class MainWindow(QMainWindow):
     def quit_app(self):
         self._tray.hide()
         QTimer.singleShot(50, self.close)
+
+    def _setup_session_timeout(self):
+        self._session_timer = QTimer(self)
+        self._session_timer.setSingleShot(True)
+        self._session_timer.timeout.connect(self._on_session_timeout)
+        self._session_timeout_ms = 300_000
+        self._session_locked = False
+        self.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        etype = event.type()
+        if etype in (QEvent.MouseMove, QEvent.MouseButtonPress, QEvent.KeyPress,
+                     QEvent.Wheel, QEvent.TouchBegin):
+            self._reset_session_timer()
+        return super().eventFilter(obj, event)
+
+    def _reset_session_timer(self):
+        if self._session_locked:
+            return
+        if is_pin_set() or self._wallet_mgr.pin_required:
+            self._session_timer.start(self._session_timeout_ms)
+
+    def _on_session_timeout(self):
+        if not (is_pin_set() or self._wallet_mgr.pin_required):
+            return
+        self._session_locked = True
+        audit_log("SESSION_TIMEOUT", "Session locked due to inactivity")
+        self._toast.show_toast(_("Session locked due to inactivity"), "warning", 4000)
+        from ui.components.pin_dialog import PinDialog
+        dlg = PinDialog("unlock", self)
+        if dlg.exec() == PinDialog.Accepted:
+            pin = dlg._input.text() or ""
+            if self._wallet_mgr.pin_required:
+                err = self._wallet_mgr.decrypt_with_pin(pin)
+                if err is None:
+                    audit_log("SESSION_UNLOCK", "Session unlocked via PIN")
+                    self._session_locked = False
+                    self._reset_session_timer()
+                    return
+            elif is_pin_set() and verify_pin(pin):
+                audit_log("SESSION_UNLOCK", "Session unlocked via PIN")
+                self._session_locked = False
+                self._reset_session_timer()
+                return
+            audit_log("PIN_VERIFY_FAIL", "Session unlock PIN rejected")
+            self._toast.show_toast(_("Wrong PIN"), "error", 3000)
+            self._on_session_timeout()
+        else:
+            self.hide()
 
     def _on_page_change(self, index: int):
         self._stack.setCurrentIndex(index)

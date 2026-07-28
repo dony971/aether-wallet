@@ -5,6 +5,7 @@ from typing import Optional
 
 from core.config import config
 from utils.encrypt import encrypt_file, decrypt_file, is_encrypted
+from utils.audit import log as audit_log
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +114,7 @@ class WalletManager:
                 p.write_text(json.dumps(data, indent=2))
                 self._set_active(name)
                 self._load_from(p)
+                audit_log("WALLET_CREATE", f"Wallet '{name}' created", address=data.get("public_key_hex", "")[:16])
                 return f"Wallet '{name}' created!"
             err = proc.readAllStandardError().data().decode()
             return f"Failed: {err.strip() or 'unknown error'}"
@@ -154,6 +156,7 @@ class WalletManager:
                 p.write_text(json.dumps(data, indent=2))
                 self._set_active(name)
                 self._load_from(p)
+                audit_log("WALLET_IMPORT", f"Wallet '{name}' imported", address=data.get("public_key_hex", "")[:16])
                 return f"Wallet '{name}' imported!"
             err = proc.readAllStandardError().data().decode()
             return f"Import failed: {err.strip() or 'unknown error'}"
@@ -174,6 +177,7 @@ class WalletManager:
         p = self._wallets_dir / f"{name}.json"
         if p.exists():
             p.unlink()
+            audit_log("WALLET_DELETE", f"Wallet '{name}' deleted")
             return f"Wallet '{name}' deleted."
         return f"Wallet '{name}' not found."
 
@@ -247,18 +251,21 @@ class WalletManager:
             if not is_encrypted(raw):
                 data = json.loads(raw)
                 self._apply_data(data, p)
+                audit_log("WALLET_LOAD", f"Loaded plain wallet '{p.stem}'", address=data.get("public_key_hex", "")[:16])
                 return
             env = json.loads(raw)
             if env.get("m") == "keyfile":
                 from utils.encrypt import decrypt_wallet
                 data = decrypt_wallet(raw)
                 self._apply_data(data, p)
+                audit_log("WALLET_LOAD", f"Loaded keyfile wallet '{p.stem}'", address=data.get("public_key_hex", "")[:16])
             elif env.get("m") == "pin":
                 self._encrypted_pending = raw
                 self._wallet_path = p
                 self._active_name = p.stem
                 self._load_error = ""
                 logger.info("Wallet is PIN-encrypted, awaiting PIN")
+                audit_log("WALLET_LOAD", f"PIN-encrypted wallet '{p.stem}' awaiting unlock")
             else:
                 self._load_error = "Unknown encryption format"
         except ValueError as e:
