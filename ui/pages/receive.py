@@ -72,6 +72,7 @@ class ReceivePage(QWidget):
         addr_input.setPlainText(self._wallet_mgr.address)
         addr_input.setReadOnly(True)
         addr_input.setMaximumHeight(60)
+        addr_input.setStyleSheet(f"color: {TEXT_PRIMARY}; background-color: transparent; border: none; font-size: 13px;")
         addr_row.addWidget(addr_input, 1)
 
         copy_btn = QPushButton("Copy")
