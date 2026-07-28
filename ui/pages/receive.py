@@ -76,11 +76,11 @@ class ReceivePage(QWidget):
         addr_row.addWidget(addr_input, 1)
 
         copy_btn = QPushButton("Copy")
-        copy_btn.setFixedWidth(70)
+        copy_btn.setFixedSize(80, 36)
         copy_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: transparent; color: {ACCENT}; font-weight: 600;
-                border-radius: 8px; font-size: 12px;
+                border-radius: 8px; font-size: 12px; padding: 0;
                 border: 1px solid {ACCENT}44;
             }}
             QPushButton:hover {{ background-color: {ACCENT}22; border-color: {ACCENT}; }}
