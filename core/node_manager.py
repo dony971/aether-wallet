@@ -28,6 +28,7 @@ class NodeManager(QObject):
         self._restart_timer.timeout.connect(self.start)
         self._restart_count = 0
         self._shutting_down = False
+        self._stderr_buf = ""
 
     @property
     def is_running(self) -> bool:
@@ -88,19 +89,8 @@ class NodeManager(QObject):
         logger.info(f"Node exited with code {exit_code} (status {exit_status})")
         self.stopped.emit()
 
-        stderr = self._read_stderr()
-        if stderr:
-            for line in stderr.splitlines():
-                logger.error(f"[node error] {line}")
-
-        if self._shutting_down:
-            return
-
-        if ("address already in use" in stderr.lower()
-                or ("port" in stderr.lower() and "in use" in stderr.lower())):
-            msg = f"Port {config.rpc_port} or {config.p2p_port} is already in use.\nClose other applications and restart."
-            self.error_occurred.emit(msg)
-            return
+        stderr = self._stderr_buf
+        self._stderr_buf = ""
 
         if "could not acquire lock" in stderr.lower() and "sled" in stderr.lower():
             sled_path = config.data_dir / "sled_db"
@@ -112,6 +102,15 @@ class NodeManager(QObject):
                 self._restart_count = 0
                 QTimer.singleShot(1000, self.start)
                 return
+
+        if self._shutting_down:
+            return
+
+        if ("address already in use" in stderr.lower()
+                or ("port" in stderr.lower() and "in use" in stderr.lower())):
+            msg = f"Port {config.rpc_port} or {config.p2p_port} is already in use.\nClose other applications and restart."
+            self.error_occurred.emit(msg)
+            return
 
         if exit_code != 0:
             self._restart_count += 1
@@ -134,6 +133,7 @@ class NodeManager(QObject):
     def _on_stderr(self):
         data = self._read_stderr()
         if data:
+            self._stderr_buf += data
             for line in data.splitlines():
                 logger.error(f"[node stderr] {line}")
 

@@ -4,6 +4,7 @@ import base64
 import hashlib
 from pathlib import Path
 
+from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -46,7 +47,7 @@ def _delete_key():
         kf.unlink(missing_ok=True)
 
 
-def encrypt_wallet(data: dict, pin: str | None = None) -> bytes:
+def encrypt_wallet(data: dict, pin: str | None = None, reuse_key: bytes | None = None) -> bytes:
     plain = json.dumps(data, indent=2).encode()
     nonce = os.urandom(_NONCE_SIZE)
     if pin:
@@ -55,8 +56,11 @@ def encrypt_wallet(data: dict, pin: str | None = None) -> bytes:
         blob = AESGCM(key).encrypt(nonce, plain, None)
         return json.dumps({"v": 1, "m": "pin", "salt": salt.hex(), "nonce": nonce.hex(), "data": blob.hex()}).encode()
     else:
-        key = os.urandom(_AES_KEY_SIZE)
-        _store_key(key)
+        if reuse_key:
+            key = reuse_key
+        else:
+            key = os.urandom(_AES_KEY_SIZE)
+            _store_key(key)
         blob = AESGCM(key).encrypt(nonce, plain, None)
         return json.dumps({"v": 1, "m": "keyfile", "nonce": nonce.hex(), "data": blob.hex()}).encode()
 
@@ -86,7 +90,10 @@ def decrypt_wallet(raw: bytes, pin: str | None = None) -> dict:
     else:
         raise ValueError("Unknown encryption method")
 
-    plain = AESGCM(key).decrypt(nonce, data, None)
+    try:
+        plain = AESGCM(key).decrypt(nonce, data, None)
+    except InvalidTag:
+        raise ValueError("Wallet key is invalid or the file is corrupted. Create a new wallet or import using your private key.")
     return json.loads(plain)
 
 
