@@ -10,6 +10,7 @@ from core.rpc_client import RpcClient
 from core.config import config
 from wallet.wallet_manager import WalletManager
 from utils.pin_manager import is_set as pin_is_set, set_pin, remove_pin
+from utils.helpers import VERSION, check_for_update
 
 
 class SettingsPage(QWidget):
@@ -111,7 +112,7 @@ class SettingsPage(QWidget):
         update_title.setStyleSheet(f"font-size: 15px; font-weight: 700; color: {TEXT_PRIMARY}; background: transparent;")
         update_layout.addWidget(update_title)
 
-        self._update_status = QLabel("Local version: v1.1.0")
+        self._update_status = QLabel(f"Local version: v{VERSION}")
         self._update_status.setStyleSheet(f"color: {TEXT_PRIMARY}; font-size: 12px; background: transparent;")
         update_layout.addWidget(self._update_status)
 
@@ -408,37 +409,24 @@ class SettingsPage(QWidget):
 
     def _do_check_update(self):
         try:
-            import requests as req
-            resp = req.get("https://api.github.com/repos/dony971/aether/releases/latest", timeout=10)
-            resp.raise_for_status()
-            data = resp.json()
-            latest_tag = data.get("tag_name", "v0.0.0")
-            latest_version = latest_tag.lstrip("v")
-            current_version = "1.1.0"
-
-            def parse_ver(v):
-                parts = v.split(".")
-                return tuple(int(p) if p.isdigit() else 0 for p in parts)
-
-            if parse_ver(latest_version) > parse_ver(current_version):
+            result = check_for_update()
+            if result:
                 self._update_status.setStyleSheet(f"color: {SUCCESS}; font-size: 12px; background: transparent; font-weight: 700;")
-                self._update_status.setText(
-                    f"Update available: {latest_tag} (local: v{current_version})"
-                )
+                self._update_status.setText(f"Update available: {result['tag']} (local: v{VERSION})")
                 btn = QMessageBox(
                     QMessageBox.Information,
                     "Update Available",
-                    f"AETHER SEDC {latest_tag} is available!\n\n"
-                    f"{data.get('body', '').strip()[:300]}...\n\n"
+                    f"AETHER SEDC {result['tag']} is available!\n\n"
+                    f"{result['body']}...\n\n"
                     "Open the releases page to download?",
                     QMessageBox.Yes | QMessageBox.No,
                     self
                 )
                 if btn.exec() == QMessageBox.Yes:
-                    QDesktopServices.openUrl(QUrl("https://github.com/dony971/aether/releases/latest"))
+                    QDesktopServices.openUrl(QUrl(result['url']))
             else:
-                self._update_status.setText(f"You're up to date (v{current_version})")
-                QMessageBox.information(self, "Up to Date", f"Current version v{current_version} is the latest.")
+                self._update_status.setText(f"You're up to date (v{VERSION})")
+                QMessageBox.information(self, "Up to Date", f"Current version v{VERSION} is the latest.")
         except Exception as e:
             self._update_status.setText(f"Update check failed: {e}")
         finally:

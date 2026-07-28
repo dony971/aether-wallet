@@ -19,6 +19,7 @@ from core.rpc_client import RpcClient
 from core.node_manager import NodeManager
 from wallet.wallet_manager import WalletManager
 from utils.pin_manager import is_set as is_pin_set, verify as verify_pin
+from utils.helpers import VERSION, check_for_update
 
 
 class MainWindow(QMainWindow):
@@ -29,7 +30,7 @@ class MainWindow(QMainWindow):
         self._node = NodeManager(self)
         self._wallet_mgr = wallet_mgr if wallet_mgr is not None else WalletManager()
 
-        self.setWindowTitle("AETHER SEDC")
+        self.setWindowTitle(f"AETHER SEDC v{VERSION}")
         self.setMinimumSize(960, 640)
         self.resize(1200, 780)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Window)
@@ -156,7 +157,7 @@ class MainWindow(QMainWindow):
             pass
         icon = QIcon(str(icon_path))
         self._tray.setIcon(icon)
-        self._tray.setToolTip("AETHER SEDC Wallet")
+        self._tray.setToolTip(f"AETHER SEDC Wallet v{VERSION}")
 
         menu = QMenu()
         show_action = QAction("Show", self)
@@ -323,8 +324,14 @@ class MainWindow(QMainWindow):
             self._splash = None
         self.show()
         self._check_pin()
+        QTimer.singleShot(5000, self._auto_check_update)
         if self._wallet_mgr.load_error:
             self._toast.show_toast(f"Wallet issue: {self._wallet_mgr.load_error}", "warning", 8000)
+
+    def _auto_check_update(self):
+        result = check_for_update()
+        if result:
+            self._toast.show_toast(f"Update {result['tag']} available! Check Settings > Updates.", "success", 10000)
 
     def _on_node_status(self, msg: str):
         self._status_text.setText(msg)

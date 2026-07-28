@@ -3,6 +3,7 @@ from PySide6.QtGui import QPainter, QColor, QFont, QPen, QPainterPath, QLinearGr
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QFrame
 
 from ui.theme import BG_SIDEBAR, ACCENT, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED, BORDER
+from utils.helpers import VERSION
 
 
 class SidebarButton(QPushButton):
@@ -126,7 +127,7 @@ class Sidebar(QFrame):
 
         layout.addStretch()
 
-        ver = QLabel("v1.0.0  |  SEDC")
+        ver = QLabel(f"v{VERSION}  |  SEDC")
         ver.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 10px; padding: 16px 20px 4px 20px; background: transparent;")
         layout.addWidget(ver)
 
