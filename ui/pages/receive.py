@@ -2,7 +2,7 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QTextEdit, QApplication
 from PySide6.QtGui import QPixmap
 
-from ui.theme import TEXT_PRIMARY, TEXT_SECONDARY, BG_CARD, BORDER, ERROR, SUCCESS, WARNING, ACCENT
+from ui.theme import TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED, BG_CARD, BORDER, ERROR, SUCCESS, WARNING, ACCENT
 from core.rpc_client import RpcClient, RpcError
 from wallet.wallet_manager import WalletManager
 
