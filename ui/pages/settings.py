@@ -111,8 +111,8 @@ class SettingsPage(QWidget):
         update_title.setStyleSheet(f"font-size: 15px; font-weight: 700; color: {TEXT_PRIMARY}; background: transparent;")
         update_layout.addWidget(update_title)
 
-        self._update_status = QLabel("Local version: v1.0.0")
-        self._update_status.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px; background: transparent;")
+        self._update_status = QLabel("Local version: v1.1.0")
+        self._update_status.setStyleSheet(f"color: {TEXT_PRIMARY}; font-size: 12px; background: transparent;")
         update_layout.addWidget(self._update_status)
 
         self._check_update_btn = QPushButton("Check for Updates")
@@ -414,13 +414,14 @@ class SettingsPage(QWidget):
             data = resp.json()
             latest_tag = data.get("tag_name", "v0.0.0")
             latest_version = latest_tag.lstrip("v")
-            current_version = "1.0.0"
+            current_version = "1.1.0"
 
             def parse_ver(v):
                 parts = v.split(".")
                 return tuple(int(p) if p.isdigit() else 0 for p in parts)
 
             if parse_ver(latest_version) > parse_ver(current_version):
+                self._update_status.setStyleSheet(f"color: {SUCCESS}; font-size: 12px; background: transparent; font-weight: 700;")
                 self._update_status.setText(
                     f"Update available: {latest_tag} (local: v{current_version})"
                 )
