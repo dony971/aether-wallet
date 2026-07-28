@@ -191,6 +191,8 @@ class MainWindow(QMainWindow):
                     self._wallet_mgr.upgrade_to_pin_encryption(pin)
                     self._dashboard.refresh()
                     self._send.refresh()
+                    self._receive.refresh()
+                    self._sidebar.update_wallet_label()
                     return
                 attempts += 1
             self._toast.show_toast("Wrong PIN after 3 attempts", "error", 5000)
@@ -236,6 +238,11 @@ class MainWindow(QMainWindow):
             if err:
                 self._toast.show_toast(f"Wrong PIN: {err}", "error", 5000)
                 self.hide()
+                return
+            self._dashboard.refresh()
+            self._send.refresh()
+            self._receive.refresh()
+            self._sidebar.update_wallet_label()
 
     def _start_auto_backup(self):
         self._backup_timer = QTimer(self)

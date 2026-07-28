@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QPainter, QColor, QFont, QPen, QPainterPath, QLinearGradient, QBrush
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QFrame
 
@@ -143,6 +143,7 @@ class Sidebar(QFrame):
         layout.addWidget(self._help_btn)
 
         self._select_page(0)
+        QTimer.singleShot(0, self.update_wallet_label)
 
     def update_wallet_label(self):
         if self._wallet_mgr and self._wallet_mgr.has_wallet:

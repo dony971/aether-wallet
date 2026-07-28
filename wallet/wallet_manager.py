@@ -110,7 +110,7 @@ class WalletManager:
             proc.waitForFinished(5000)
             if proc.exitCode() == 0:
                 data = json.loads(Path(tmp.name).read_bytes())
-                encrypt_file(p, data, pin=None)
+                p.write_text(json.dumps(data, indent=2))
                 self._set_active(name)
                 self._load_from(p)
                 return f"Wallet '{name}' created!"
@@ -135,7 +135,7 @@ class WalletManager:
         if len(private_key_hex) not in (64, 128):
             return "Invalid key length (need 64 or 128 hex chars)."
         name = self._sanitize_name(name)
-        import tempfile, os
+        import tempfile, os, json
         from PySide6.QtCore import QProcess
         key_tmp = tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".key")
         key_tmp.write(private_key_hex)
@@ -151,7 +151,7 @@ class WalletManager:
             proc.waitForFinished(5000)
             if proc.exitCode() == 0:
                 data = json.loads(Path(out_tmp.name).read_bytes())
-                encrypt_file(p, data, pin=None)
+                p.write_text(json.dumps(data, indent=2))
                 self._set_active(name)
                 self._load_from(p)
                 return f"Wallet '{name}' imported!"
@@ -247,7 +247,6 @@ class WalletManager:
             if not is_encrypted(raw):
                 data = json.loads(raw)
                 self._apply_data(data, p)
-                self._migrate_to_encrypted(p, data)
                 return
             env = json.loads(raw)
             if env.get("m") == "keyfile":
@@ -262,17 +261,15 @@ class WalletManager:
                 logger.info("Wallet is PIN-encrypted, awaiting PIN")
             else:
                 self._load_error = "Unknown encryption format"
+        except ValueError as e:
+            if "Wallet key file missing" in str(e):
+                self._load_error = "Wallet encryption key file is missing. If you set a PIN, restart and enter your PIN. Otherwise, import your wallet using your private key."
+            else:
+                self._load_error = f"Failed to load wallet: {e}"
+            logger.error(self._load_error)
         except Exception as e:
             self._load_error = f"Failed to load wallet: {e}"
             logger.error(self._load_error)
-
-    def _migrate_to_encrypted(self, p: Path, data: dict):
-        from utils.encrypt import encrypt_file
-        try:
-            encrypt_file(p, data, pin=None)
-            logger.info("Migrated unencrypted wallet to encrypted (keyfile)")
-        except Exception as e:
-            logger.warning("Migration to encrypted failed: %s", e)
 
     def upgrade_to_pin_encryption(self, pin: str):
         if not self._wallet_path or not self._wallet_path.exists():

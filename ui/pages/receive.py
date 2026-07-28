@@ -143,6 +143,9 @@ class ReceivePage(QWidget):
         lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px; background: transparent;")
         return lbl
 
+    def refresh(self):
+        self._rebuild()
+
     def _on_create_wallet(self):
         self._result.setText("Creating wallet...")
         self._result.setStyleSheet("background: transparent; font-size: 12px; padding: 8px;")
