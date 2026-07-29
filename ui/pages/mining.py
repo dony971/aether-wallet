@@ -193,9 +193,11 @@ class MiningPage(QWidget):
             hashrate_resp = self._rpc.get_network_hashrate()
 
             is_mining = mining.get("is_mining", False)
-            hashrate = float(hashrate_resp.get("hashrate", 0))
+            raw_hash = str(hashrate_resp.get("hashrate", "0"))
+            hashrate = float(raw_hash.split()[0]) if raw_hash.split() else 0
             difficulty = str(hashrate_resp.get("difficulty", "?"))
-            net_hashrate = float(hashrate_resp.get("network_hashrate", hashrate_resp.get("hashrate", 0)))
+            raw_net = str(hashrate_resp.get("network_hashrate", raw_hash))
+            net_hashrate = float(raw_net.split()[0]) if raw_net.split() else 0
             total_mined = float(mining.get("total_mined", mining.get("mined", 0)))
 
             peers = int(stats.get("connected_peers", 0))

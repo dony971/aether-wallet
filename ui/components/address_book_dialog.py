@@ -176,7 +176,7 @@ class AddressBookDialog(QDialog):
                                 QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
             msg = contacts.delete_contact(name)
         QMessageBox.information(self, _("Contact"), msg)
-            self._refresh_list()
+        self._refresh_list()
 
     def _on_send_to(self):
         name = self._get_selected_name()

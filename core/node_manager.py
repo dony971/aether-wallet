@@ -129,12 +129,16 @@ class NodeManager(QObject):
             self._restart_count = 0
 
     def _on_stdout(self):
+        if not hasattr(self, '_process') or not hasattr(self._process, 'readAllStandardOutput'):
+            return
         data = self._process.readAllStandardOutput().data().decode("utf-8", errors="replace")
         for line in data.splitlines():
             if line.strip():
                 logger.debug(f"[node] {line}")
 
     def _on_stderr(self):
+        if not hasattr(self, '_process') or not hasattr(self._process, 'readAllStandardError'):
+            return
         data = self._read_stderr()
         if data:
             self._stderr_buf += data
@@ -142,6 +146,8 @@ class NodeManager(QObject):
                 logger.error(f"[node stderr] {line}")
 
     def _read_stderr(self) -> str:
+        if not hasattr(self._process, 'readAllStandardError'):
+            return ""
         raw = self._process.readAllStandardError().data()
         return raw.decode("utf-8", errors="replace") if raw else ""
 

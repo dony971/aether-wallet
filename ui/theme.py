@@ -165,6 +165,23 @@ def apply_theme(app, theme_name: str = ""):
         border-radius: 3px;
         min-width: 30px;
     }}
+    QMessageBox {{
+        background-color: {CURRENT['BG_PRIMARY']};
+        color: {CURRENT['TEXT_PRIMARY']};
+    }}
+    QMessageBox QLabel {{
+        color: {CURRENT['TEXT_PRIMARY']};
+    }}
+    QMessageBox QPushButton {{
+        background-color: {CURRENT['ACCENT']};
+        color: #000000;
+        border: none;
+        border-radius: 6px;
+        padding: 6px 20px;
+        font-size: 12px;
+        font-weight: 600;
+        min-width: 80px;
+    }}
     """
     app.setStyleSheet(stylesheet)
 

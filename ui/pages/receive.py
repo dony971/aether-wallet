@@ -152,7 +152,7 @@ class ReceivePage(QWidget):
         self._result.setText(_("Creating wallet..."))
         self._result.setStyleSheet("background: transparent; font-size: 12px; padding: 8px;")
         msg = self._wallet_mgr.create_wallet()
-        if "successfully" in msg:
+        if "created" in msg or "imported" in msg:
             self._result.setStyleSheet(f"color: {SUCCESS}; background: transparent; padding: 8px;")
             self._result.setText(msg)
             self._rebuild()

@@ -456,12 +456,24 @@ class SettingsPage(QWidget):
                     _("Update Available"),
                     _("AETHER SEDC {} is available!\n\n"
                       "{}...\n\n"
-                      "Open the releases page to download?").format(result['tag'], result['body']),
+                      "Auto-download and install?").format(result['tag'], result['body']),
                     QMessageBox.Yes | QMessageBox.No,
                     self
                 )
                 if btn.exec() == QMessageBox.Yes:
-                    QDesktopServices.openUrl(QUrl(result['url']))
+                    if result.get("setup_url"):
+                        self._update_status.setText(_("Downloading update..."))
+                        temp_dir = Path.home() / "AppData" / "Local" / "Temp" / "AETHER_Update"
+                        temp_dir.mkdir(parents=True, exist_ok=True)
+                        setup_path = temp_dir / "AETHER_Wallet_Setup.exe"
+                        from utils.helpers import download_update
+                        if download_update(result["setup_url"], setup_path):
+                            self._update_status.setText(_("Download complete. Launching installer..."))
+                            import subprocess
+                            subprocess.Popen([str(setup_path)])
+                            QTimer.singleShot(500, self.window().close)
+                        else:
+                            self._update_status.setText(_("Download failed. Try again."))
             else:
                 self._update_status.setText(_("You're up to date (v{})").format(VERSION))
                 QMessageBox.information(self, _("Up to Date"), _("Current version v{} is the latest.").format(VERSION))

@@ -15,11 +15,12 @@ from ui.pages.transactions import TransactionsPage
 from ui.pages.settings import SettingsPage
 from ui.pages.staking import StakingPage
 from ui.pages.mining import MiningPage
+from core.config import config
 from core.rpc_client import RpcClient
 from core.node_manager import NodeManager
 from wallet.wallet_manager import WalletManager
 from utils.pin_manager import is_set as is_pin_set, verify as verify_pin, is_locked, lockout_remaining
-from utils.helpers import VERSION, check_for_update
+from utils.helpers import VERSION, check_for_update, download_update
 from utils.audit import log as audit_log
 from utils.i18n import _
 
@@ -406,7 +407,24 @@ class MainWindow(QMainWindow):
     def _auto_check_update(self):
         result = check_for_update()
         if result:
-            self._toast.show_toast(_("Update {} available! Check Settings > Updates.").format(result['tag']), "success", 10000)
+            from PySide6.QtWidgets import QMessageBox
+            reply = QMessageBox.question(
+                self, _("Update Available"),
+                _("AETHER SEDC {} is available!\n\nDownload and install now?").format(result['tag']),
+                QMessageBox.Yes | QMessageBox.No
+            )
+            if reply == QMessageBox.Yes:
+                self._toast.show_toast(_("Downloading update..."), "info", 3000)
+                temp_dir = Path.home() / "AppData" / "Local" / "Temp" / "AETHER_Update"
+                temp_dir.mkdir(parents=True, exist_ok=True)
+                setup_path = temp_dir / "AETHER_Wallet_Setup.exe"
+                if result.get("setup_url") and download_update(result["setup_url"], setup_path):
+                    self._toast.show_toast(_("Download complete. Launching installer..."), "success", 3000)
+                    import subprocess
+                    subprocess.Popen([str(setup_path)])
+                    QTimer.singleShot(500, self.close)
+                else:
+                    self._toast.show_toast(_("Download failed. Try again from Settings."), "error", 5000)
 
     def _on_node_status(self, msg: str):
         self._status_text.setText(msg)

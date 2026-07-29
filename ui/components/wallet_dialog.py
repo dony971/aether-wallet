@@ -156,7 +156,7 @@ class ManageWalletsDialog(QDialog):
                                 QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
             msg = self._wm.delete_wallet(name)
         QMessageBox.information(self, _("Wallet"), msg)
-            self._refresh_list()
+        self._refresh_list()
 
 
 

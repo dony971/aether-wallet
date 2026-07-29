@@ -2,7 +2,7 @@
 ; Install Inno Setup 6 (jrsoftware.org) then right-click this file → Compile
 
 #define MyAppName "AETHER SEDC Wallet"
-#define MyAppVersion "1.1.0"
+#define MyAppVersion "1.1.1"
 #define MyAppPublisher "AETHER SEDC"
 #define MyAppURL "https://github.com/dony971/aether"
 #define MyAppExeName "AETHER_Wallet.exe"

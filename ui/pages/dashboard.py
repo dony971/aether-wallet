@@ -1,3 +1,4 @@
+import logging
 from PySide6.QtCore import Qt, QTimer, QRect, QPointF
 from PySide6.QtGui import QPainter, QColor, QPen, QPainterPath, QFont, QLinearGradient, QBrush
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QGridLayout, QScrollArea
@@ -6,6 +7,8 @@ from ui.theme import BG_CARD, ACCENT, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED, 
 from ui.components.card import Card, StatRow
 from core.rpc_client import RpcClient
 from utils.i18n import _
+
+logger = logging.getLogger(__name__)
 
 
 class NetworkChart(QFrame):
@@ -348,9 +351,12 @@ class DashboardPage(QWidget):
                 except Exception:
                     pass
 
-            self._detail_rows["DAG Tips"].set_value(str(tips))
+            dag_key = _("DAG Tips")
+            if dag_key in self._detail_rows:
+                self._detail_rows[dag_key].set_value(str(tips))
 
-        except Exception:
+        except Exception as e:
+            logger.error("Dashboard refresh failed: %s", e, exc_info=True)
             self._banner_value.setText(_("Disconnected"))
             for card in [self._peers_card, self._tx_card,
                          self._hashrate_card, self._difficulty_card, self._status_card]:

@@ -3,7 +3,7 @@ import logging.handlers
 from pathlib import Path
 
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 LOG_DIR = Path.home() / "AppData" / "Roaming" / "Aether"
 
 
@@ -54,13 +54,37 @@ def check_for_update() -> dict | None:
             parts = v.split(".")
             return tuple(int(p) if p.isdigit() else 0 for p in parts)
 
+        if parse_ver(latest_version) < parse_ver(VERSION):
+            return None
+
         if parse_ver(latest_version) > parse_ver(VERSION):
+            assets = data.get("assets", [])
+            setup_url = next((a["browser_download_url"] for a in assets if "Setup" in a["name"]), None)
             return {
                 "tag": latest_tag,
                 "version": latest_version,
                 "body": data.get("body", "").strip()[:300],
                 "url": "https://github.com/dony971/aether-wallet/releases/latest",
+                "setup_url": setup_url,
             }
     except Exception:
         pass
     return None
+
+
+def download_update(setup_url: str, dest: Path) -> bool:
+    try:
+        import requests as req
+        logger = logging.getLogger(__name__)
+        logger.info("Downloading update from %s", setup_url)
+        resp = req.get(setup_url, timeout=120, stream=True)
+        resp.raise_for_status()
+        with open(dest, "wb") as f:
+            for chunk in resp.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+        logger.info("Update downloaded to %s", dest)
+        return True
+    except Exception as e:
+        logger.error("Download failed: %s", e)
+        return False
