@@ -193,8 +193,10 @@ class SendPage(QWidget):
 
         if pin_is_set():
             from ui.components.pin_dialog import PinDialog
-            if PinDialog("unlock", self).exec() != PinDialog.Accepted:
+            dlg = PinDialog("unlock", self)
+            if dlg.exec() != PinDialog.Accepted:
                 return
+            self._last_pin = dlg.get_pin()
 
         txs = self._validate()
         if txs is None:
@@ -239,16 +241,16 @@ class SendPage(QWidget):
             raw = self._wallet_mgr.wallet_file.read_bytes()
             env = json.loads(raw) if raw.startswith(b"{") else {"error": "encrypted"}
             if isinstance(env, dict) and "v" in env:
-                from utils.pin_manager import verify as pin_verify
                 from utils.encrypt import decrypt_wallet
+                from utils.pin_manager import verify as pin_verify
                 pin_candidate = getattr(self, "_last_pin", None)
-                if pin_candidate and pin_verify(pin_candidate):
-                    decrypted = decrypt_wallet(raw, pin_candidate)
-                    tmp.write(json.dumps(decrypted, indent=2).encode())
-                else:
-                    self._toast.show_toast(_("Cannot send: wallet is PIN-encrypted"), "error")
-                    self._send_btn.setEnabled(True)
-                    return
+                if env.get("m") == "pin":
+                    if not pin_candidate or not pin_verify(pin_candidate):
+                        self._toast.show_toast(_("Cannot send: wallet is PIN-encrypted"), "error")
+                        self._send_btn.setEnabled(True)
+                        return
+                decrypted = decrypt_wallet(raw, pin_candidate)
+                tmp.write(json.dumps(decrypted, indent=2).encode())
             else:
                 tmp.write(raw)
             tmp.close()

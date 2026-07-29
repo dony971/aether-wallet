@@ -13,6 +13,9 @@ class PinDialog(QDialog):
         self._mode = mode  # "unlock" | "set" | "confirm"
         self._pin = ""
 
+    def get_pin(self) -> str:
+        return self._pin
+
         self.setWindowTitle(_("PIN") if mode != "set" else _("Set PIN"))
         self.setFixedSize(380, 340)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
@@ -96,6 +99,7 @@ class PinDialog(QDialog):
             return
         if self._mode == "unlock":
             if verify(text):
+                self._pin = text
                 self.accept()
             else:
                 self._input.clear()
