@@ -256,7 +256,7 @@ class SendPage(QWidget):
             tmp.close()
 
             proc = QProcess(self)
-            proc.finished.connect(lambda code, p=proc, tx_data=tx, t=tmp: self._on_tx_result(p, code, tx_data, t))
+            proc.finished.connect(lambda code, status, p=proc, tx_data=tx, t=tmp: self._on_tx_result(p, code, tx_data, t))
             proc.start(binary, ["send", tx["receiver"], tx["amount"], tx["fee"],
                                 "--wallet", tmp.name,
                                 "--rpc-url", rpc_url])
