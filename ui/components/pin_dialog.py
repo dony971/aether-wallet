@@ -13,9 +13,6 @@ class PinDialog(QDialog):
         self._mode = mode  # "unlock" | "set" | "confirm"
         self._pin = ""
 
-    def get_pin(self) -> str:
-        return self._pin
-
         self.setWindowTitle(_("PIN") if mode != "set" else _("Set PIN"))
         self.setFixedSize(380, 340)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
@@ -76,10 +73,10 @@ class PinDialog(QDialog):
             self._skip_btn = QPushButton(_("Skip") if mode == "set" else _("Cancel"))
             self._skip_btn.setStyleSheet(f"""
                 QPushButton {{
-                    background-color: transparent; color: {TEXT_MUTED}; font-weight: 500;
-                    border-radius: 6px; padding: 8px 16px; font-size: 12px; border: none;
+                    background-color: transparent; color: {TEXT_SECONDARY}; font-weight: 500;
+                    border-radius: 6px; padding: 8px 16px; font-size: 12px; border: 1px solid {BORDER};
                 }}
-                QPushButton:hover {{ color: {TEXT_PRIMARY}; }}
+                QPushButton:hover {{ color: {TEXT_PRIMARY}; border-color: {ACCENT}; }}
             """)
             self._skip_btn.clicked.connect(self.reject)
             btn_row.addWidget(self._skip_btn)
@@ -92,6 +89,9 @@ class PinDialog(QDialog):
         root.addWidget(outer)
 
         self._input.setFocus()
+
+    def get_pin(self) -> str:
+        return self._pin
 
     def _on_input(self, text: str):
         self._error.setText("")
